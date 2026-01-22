@@ -1,19 +1,6 @@
 import { McpServer } from "skybridge/server";
 import { z } from "zod";
-import { products } from "./products.js";
-
-interface Product {
-  id: number;
-  title: string;
-  price: number;
-  description: string;
-  category: string;
-  image: string;
-  rating: {
-    rate: number;
-    count: number;
-  };
-}
+import { listProducts } from "./db.js";
 
 const server = new McpServer(
   {
@@ -36,26 +23,12 @@ const server = new McpServer(
   {
     description: "Display a carousel of products from the store.",
     inputSchema: {
-      category: z
-        .enum(["electronics", "jewelery", "men's clothing", "women's clothing"])
-        .optional()
-        .describe("Filter by product category"),
-      maxPrice: z.number().optional().describe("Maximum price filter"),
+      query: z.string().describe("Search query for products"),
     },
   },
-  ({ category, maxPrice }) => {
+  async ({ query }) => {
     try {
-      const filtered: Product[] = [];
-
-      for (const product of products) {
-        if (category && product.category !== category) {
-          continue;
-        }
-        if (maxPrice !== undefined && product.price > maxPrice) {
-          continue;
-        }
-        filtered.push(product);
-      }
+      const filtered = await listProducts(query);
 
       return {
         structuredContent: { products: filtered },

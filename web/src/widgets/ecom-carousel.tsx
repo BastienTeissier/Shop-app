@@ -39,6 +39,7 @@ const translations: Record<string, Record<string, string>> = {
 };
 
 const CHECKOUT_URL = "https://alpic.ai";
+const formatPrice = (priceCents: number) => `$${(priceCents / 100).toFixed(2)}`;
 
 function EcomCarousel() {
   const { theme } = useLayout();
@@ -84,11 +85,11 @@ function EcomCarousel() {
 
   if (isOpen) {
     const cartItems: Product[] = [];
-    let total = 0;
+    let totalCents = 0;
     for (const p of output.products) {
       if (cart.ids.includes(p.id)) {
         cartItems.push(p);
-        total += p.price;
+        totalCents += p.price;
       }
     }
     const checkoutUrl = new URL(CHECKOUT_URL);
@@ -101,13 +102,13 @@ function EcomCarousel() {
           {cartItems.map((item) => (
             <div key={item.id} className="checkout-item">
               <span>{item.title}</span>
-              <span>${item.price.toFixed(2)}</span>
+              <span>{formatPrice(item.price)}</span>
             </div>
           ))}
         </div>
         <div className="checkout-total">
           <span>Total</span>
-          <span>${total.toFixed(2)}</span>
+          <span>{formatPrice(totalCents)}</span>
         </div>
         <button
           type="button"
@@ -143,14 +144,14 @@ function EcomCarousel() {
                 onClick={() => setSelected(product)}
               >
                 <img
-                  src={product.image}
+                  src={product.imageUrl}
                   alt={product.title}
                   className="product-image"
                 />
                 <div className="product-info">
                   <div className="product-title">{product.title}</div>
                   <div className="product-price">
-                    ${product.price.toFixed(2)}
+                    {formatPrice(product.price)}
                   </div>
                 </div>
               </button>
@@ -167,9 +168,6 @@ function EcomCarousel() {
       </div>
       <div className="product-detail">
         <div className="detail-title">{activeProduct.title}</div>
-        <div className="detail-rating">
-          ⭐ {activeProduct.rating.rate} ({activeProduct.rating.count} reviews)
-        </div>
         <div className="detail-description">{activeProduct.description}</div>
       </div>
     </div>

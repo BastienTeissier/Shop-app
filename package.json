@@ -8,6 +8,7 @@
     "dev": "skybridge dev",
     "build": "skybridge build",
     "start": "skybridge start",
+    "seed:products": "tsx scripts/load-products.ts",
     "inspector": "mcp-inspector http://localhost:3000/mcp"
   },
   "dependencies": {

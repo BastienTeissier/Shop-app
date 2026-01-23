@@ -14,7 +14,10 @@ export type Product = {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const DB_PATH = path.join(__dirname, "../../shop.db");
+const envDbPath = process.env.SHOP_DB_PATH;
+const DB_PATH = envDbPath
+	? path.resolve(envDbPath)
+	: path.join(__dirname, "../../shop.db");
 
 fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
 

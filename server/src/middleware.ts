@@ -15,6 +15,7 @@ export const mcp =
 			try {
 				const transport = new StreamableHTTPServerTransport({
 					sessionIdGenerator: undefined,
+					enableJsonResponse: process.env.MCP_ENABLE_JSON_RESPONSE === "true",
 				});
 
 				res.on("close", () => {

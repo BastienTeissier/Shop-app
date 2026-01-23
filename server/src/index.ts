@@ -13,19 +13,19 @@ app.use(mcp(server));
 const env = process.env.NODE_ENV || "development";
 
 if (env !== "production") {
-  const { devtoolsStaticServer } = await import("@skybridge/devtools");
-  app.use(await devtoolsStaticServer());
-  app.use(await widgetsDevServer());
+	const { devtoolsStaticServer } = await import("@skybridge/devtools");
+	app.use(await devtoolsStaticServer());
+	app.use(await widgetsDevServer());
 }
 
 app.listen(3000, (error) => {
-  if (error) {
-    console.error("Failed to start server:", error);
-    process.exit(1);
-  }
+	if (error) {
+		console.error("Failed to start server:", error);
+		process.exit(1);
+	}
 });
 
 process.on("SIGINT", async () => {
-  console.log("Server shutdown complete");
-  process.exit(0);
+	console.log("Server shutdown complete");
+	process.exit(0);
 });

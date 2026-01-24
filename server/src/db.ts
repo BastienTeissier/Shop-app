@@ -1,60 +1,26 @@
-import fs from "node:fs";
-import path from "node:path";
-import { DatabaseSync } from "node:sqlite";
-import { fileURLToPath } from "node:url";
+import { PrismaClient, type Product } from "@prisma/client";
 
-export type Product = {
-	id: number;
-	title: string;
-	description: string;
-	imageUrl: string;
-	price: number;
+const globalForPrisma = globalThis as typeof globalThis & {
+	prisma?: PrismaClient;
 };
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+export const prisma =
+	globalForPrisma.prisma ??
+	new PrismaClient({
+		log: process.env.NODE_ENV === "development" ? ["warn", "error"] : ["error"],
+	});
 
-const envDbPath = process.env.SHOP_DB_PATH;
-const DB_PATH = envDbPath
-	? path.resolve(envDbPath)
-	: path.join(__dirname, "../../shop.db");
-
-fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
-
-const sqlite = new DatabaseSync(DB_PATH);
-sqlite.exec("PRAGMA journal_mode = WAL");
-sqlite.exec("PRAGMA foreign_keys = ON");
-sqlite.exec(`
-  CREATE TABLE IF NOT EXISTS products (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    title TEXT NOT NULL,
-    description TEXT NOT NULL,
-    image_url TEXT NOT NULL,
-    price INTEGER NOT NULL
-  )
-`);
-
-const searchProductsStmt = sqlite.prepare(
-	`
-    SELECT id, title, description, image_url as imageUrl, price
-    FROM products
-    WHERE title LIKE ? OR description LIKE ?
-    ORDER BY id DESC
-    LIMIT ?
-  `,
-);
-
-function closeDatabase(): void {
-	try {
-		sqlite.close();
-	} catch {
-		/* ignore close errors */
-	}
+if (process.env.NODE_ENV !== "production") {
+	globalForPrisma.prisma = prisma;
 }
 
-process.on("exit", closeDatabase);
-process.on("SIGINT", closeDatabase);
-process.on("SIGTERM", closeDatabase);
+function scheduleDisconnect(): void {
+	void prisma.$disconnect();
+}
+
+process.once("beforeExit", scheduleDisconnect);
+process.once("SIGINT", scheduleDisconnect);
+process.once("SIGTERM", scheduleDisconnect);
 
 export async function listProducts(
 	query: string,
@@ -67,8 +33,16 @@ export async function listProducts(
 		return [];
 	}
 
-	const pattern = `%${trimmedQuery}%`;
-	const rows = searchProductsStmt.all(pattern, pattern, safeLimit) as Product[];
-
-	return rows;
+	return prisma.product.findMany({
+		where: {
+			OR: [
+				{ title: { contains: trimmedQuery } },
+				{ description: { contains: trimmedQuery } },
+			],
+		},
+		orderBy: { id: "desc" },
+		take: safeLimit,
+	});
 }
+
+export type { Product };

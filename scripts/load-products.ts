@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
-import { DatabaseSync } from "node:sqlite";
 import { fileURLToPath } from "node:url";
+import { PrismaClient } from "@prisma/client";
 
 type ProductInput = {
 	title: string;
@@ -17,7 +17,6 @@ const rootDir = path.resolve(__dirname, "..");
 const inputPath = process.argv[2]
 	? path.resolve(process.argv[2])
 	: path.join(rootDir, "products.json");
-const dbPath = path.join(rootDir, "shop.db");
 
 function warnInvalid(index: number, message: string): void {
 	console.warn(`Skipping product at index ${index}: ${message}`);
@@ -60,83 +59,71 @@ function normalizeProduct(raw: unknown, index: number): ProductInput | null {
 	return { title, description, image, price };
 }
 
-if (!fs.existsSync(inputPath)) {
-	console.error(`Products file not found at ${inputPath}`);
-	process.exit(1);
-}
-
-const rawContent = fs.readFileSync(inputPath, "utf8");
-let parsed: unknown;
-
-try {
-	parsed = JSON.parse(rawContent);
-} catch (error) {
-	console.error("Failed to parse products JSON:", error);
-	process.exit(1);
-}
-
-if (!Array.isArray(parsed)) {
-	console.error("Products JSON must be an array.");
-	process.exit(1);
-}
-
-const validProducts: ProductInput[] = [];
-let skipped = 0;
-
-parsed.forEach((item, index) => {
-	const normalized = normalizeProduct(item, index);
-	if (!normalized) {
-		skipped += 1;
+async function main(): Promise<void> {
+	if (!process.env.DATABASE_URL) {
+		console.error("DATABASE_URL must be set before seeding.");
+		process.exitCode = 1;
 		return;
 	}
-	validProducts.push(normalized);
-});
-
-if (validProducts.length === 0) {
-	console.log("No valid products to insert.");
-	process.exit(0);
-}
-
-fs.mkdirSync(path.dirname(dbPath), { recursive: true });
-
-const sqlite = new DatabaseSync(dbPath);
-sqlite.exec("PRAGMA journal_mode = WAL");
-sqlite.exec(`
-  CREATE TABLE IF NOT EXISTS products (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    title TEXT NOT NULL,
-    description TEXT NOT NULL,
-    image_url TEXT NOT NULL,
-    price INTEGER NOT NULL
-  )
-`);
-
-const insertStmt = sqlite.prepare(
-	`
-    INSERT INTO products (title, description, image_url, price)
-    VALUES (@title, @description, @image, @price)
-  `,
-);
-
-let inserted = 0;
-
-try {
-	sqlite.exec("BEGIN");
-	for (const product of validProducts) {
-		insertStmt.run(product);
-		inserted += 1;
+	if (!fs.existsSync(inputPath)) {
+		console.error(`Products file not found at ${inputPath}`);
+		process.exitCode = 1;
+		return;
 	}
-	sqlite.exec("COMMIT");
-} catch (error) {
-	sqlite.exec("ROLLBACK");
-	console.error("Failed to insert products:", error);
-	process.exit(1);
-} finally {
+
+	const rawContent = fs.readFileSync(inputPath, "utf8");
+	let parsed: unknown;
+
 	try {
-		sqlite.close();
-	} catch {
-		// ignore close errors
+		parsed = JSON.parse(rawContent);
+	} catch (error) {
+		console.error("Failed to parse products JSON:", error);
+		process.exitCode = 1;
+		return;
+	}
+
+	if (!Array.isArray(parsed)) {
+		console.error("Products JSON must be an array.");
+		process.exitCode = 1;
+		return;
+	}
+
+	const validProducts: ProductInput[] = [];
+	let skipped = 0;
+
+	parsed.forEach((item, index) => {
+		const normalized = normalizeProduct(item, index);
+		if (!normalized) {
+			skipped += 1;
+			return;
+		}
+		validProducts.push(normalized);
+	});
+
+	if (validProducts.length === 0) {
+		console.log("No valid products to insert.");
+		return;
+	}
+
+	const prisma = new PrismaClient();
+
+	try {
+		const result = await prisma.product.createMany({
+			data: validProducts.map((product) => ({
+				title: product.title,
+				description: product.description,
+				imageUrl: product.image,
+				price: product.price,
+			})),
+		});
+
+		console.log(`Inserted ${result.count} products. Skipped ${skipped}.`);
+	} catch (error) {
+		console.error("Failed to insert products:", error);
+		process.exitCode = 1;
+	} finally {
+		await prisma.$disconnect();
 	}
 }
 
-console.log(`Inserted ${inserted} products. Skipped ${skipped}.`);
+await main();

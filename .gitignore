@@ -3,4 +3,5 @@ dist/
 .env
 .DS_store
 demo-shop/
+tmp/
 todo.md

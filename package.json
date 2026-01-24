@@ -8,7 +8,7 @@
 		"dev": "skybridge dev",
 		"build": "skybridge build",
 		"start": "skybridge start",
-		"seed:products": "tsx scripts/load-products.ts",
+		"seed:products": "prisma db seed",
 		"inspector": "mcp-inspector http://localhost:3000/mcp",
 		"lint": "biome check .",
 		"lint:fix": "biome check . --fix",
@@ -16,11 +16,18 @@
 		"typecheck": "tsc -p tsconfig.json --noEmit",
 		"audit:ci": "pnpm audit --audit-level high",
 		"check": "pnpm lint && pnpm typecheck && pnpm audit:ci",
-		"test:integration": "dotenvx run -f .env.test -- vitest run server/tests"
+		"test:integration": "dotenvx run -f .env.test -- prisma migrate reset --force --skip-seed && dotenvx run -f .env.test -- vitest run server/tests",
+		"db:generate": "prisma generate",
+		"db:migrate": "prisma migrate dev",
+		"db:deploy": "prisma migrate deploy",
+		"db:reset": "prisma migrate reset",
+		"db:seed": "prisma db seed",
+		"db:studio": "prisma studio"
 	},
 	"dependencies": {
 		"@biomejs/biome": "^2.3.11",
 		"@modelcontextprotocol/sdk": "^1.25.2",
+		"@prisma/client": "^5.22.0",
 		"express": "^5.2.1",
 		"react": "^19.2.3",
 		"react-dom": "^19.2.3",
@@ -36,11 +43,15 @@
 		"@types/react": "^19.2.7",
 		"@types/react-dom": "^19.2.3",
 		"@vitejs/plugin-react": "^5.1.2",
+		"@dotenvx/dotenvx": "^1.51.4",
 		"nodemon": "^3.1.11",
+		"prisma": "^5.22.0",
 		"shx": "^0.4.0",
 		"tsx": "^4.21.0",
 		"typescript": "^5.9.3",
-		"@dotenvx/dotenvx": "^1.51.4",
 		"vitest": "^3.2.4"
+	},
+	"prisma": {
+		"seed": "tsx scripts/load-products.ts"
 	}
 }

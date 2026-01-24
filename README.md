@@ -57,6 +57,19 @@ This command starts an Express server on port 3000. This server packages:
 - an MCP endpoint on `/mcp` (the app backend)
 - a React application on Vite HMR dev server (the UI elements to be displayed in the host)
 
+#### Database (SQLite via Prisma)
+
+- Set `DATABASE_URL` in `.env` (example: `DATABASE_URL=file:../shop.db`).
+- Run migrations and seed data:
+```bash
+pnpm db:migrate
+pnpm db:seed
+```
+
+Future Postgres migration plan (high level):
+- Switch Prisma provider to `postgresql` and update `DATABASE_URL`.
+- Create new migrations for Postgres, migrate data, then run `pnpm db:deploy`.
+
 #### 3. Connect to ChatGPT
 
 - ChatGPT requires connectors to be publicly accessible. To expose your server on the Internet, run:

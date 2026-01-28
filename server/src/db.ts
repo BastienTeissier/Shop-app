@@ -133,4 +133,50 @@ export async function removeFromCart(
 	return getCartSnapshot(cartId);
 }
 
+export type CartSummaryItem = {
+	productId: number;
+	title: string;
+	imageUrl: string;
+	unitPriceSnapshot: number;
+	quantity: number;
+	lineTotal: number;
+};
+
+export type CartSummary = {
+	items: CartSummaryItem[];
+	subtotal: number;
+};
+
+export async function getCartSummary(sessionId: string): Promise<CartSummary> {
+	const cart = await prisma.cart.findUnique({
+		where: { sessionId },
+		include: {
+			items: {
+				include: {
+					product: {
+						select: { title: true, imageUrl: true },
+					},
+				},
+			},
+		},
+	});
+
+	if (!cart) {
+		return { items: [], subtotal: 0 };
+	}
+
+	const items: CartSummaryItem[] = cart.items.map((item) => ({
+		productId: item.productId,
+		title: item.product.title,
+		imageUrl: item.product.imageUrl,
+		unitPriceSnapshot: item.priceSnapshot,
+		quantity: item.quantity,
+		lineTotal: item.priceSnapshot * item.quantity,
+	}));
+
+	const subtotal = items.reduce((sum, item) => sum + item.lineTotal, 0);
+
+	return { items, subtotal };
+}
+
 export type { Product };

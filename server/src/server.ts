@@ -4,8 +4,10 @@ import { z } from "zod";
 import {
 	addToCart,
 	type CartSnapshot,
+	type CartSummary,
 	createCart,
 	getCartBySessionId,
+	getCartSummary,
 	listProducts,
 	removeFromCart,
 } from "./db.js";
@@ -35,6 +37,13 @@ const server = new McpServer(
 		"ecom-carousel",
 		{
 			description: "E-commerce Product Carousel",
+			_meta: {
+				ui: {
+					csp: {
+						resourceDomains: ["https://fakestoreapi.com"],
+					},
+				},
+			},
 		},
 		{
 			description: "Display a carousel of products from the store.",
@@ -142,6 +151,62 @@ const server = new McpServer(
 					isError: true,
 				};
 			}
+		},
+	)
+	.registerWidget(
+		"cart-summary",
+		{
+			description: "Cart summary widget",
+			_meta: {
+				ui: {
+					csp: {
+						resourceDomains: ["https://fakestoreapi.com"],
+					},
+				},
+			},
+		},
+		{
+			description: "Display a read-only summary of the cart contents.",
+			inputSchema: {
+				sessionId: z.string().describe("Anonymous cart session ID (UUID)"),
+			},
+		},
+		async ({ sessionId }) => {
+			const validated = cartSessionSchema.safeParse(sessionId);
+			if (!validated.success) {
+				return {
+					structuredContent: { sessionId, items: [], subtotal: 0 },
+					content: textContent("Invalid cart session"),
+					isError: true,
+				};
+			}
+
+			const cart = await getCartBySessionId(sessionId);
+			if (!cart) {
+				return {
+					structuredContent: { sessionId, items: [], subtotal: 0 },
+					content: textContent("Invalid cart session"),
+					isError: true,
+				};
+			}
+
+			const summary: CartSummary = await getCartSummary(sessionId);
+
+			return {
+				structuredContent: {
+					sessionId,
+					items: summary.items,
+					subtotal: summary.subtotal,
+				},
+				content: textContent(
+					JSON.stringify({
+						sessionId,
+						items: summary.items,
+						subtotal: summary.subtotal,
+					}),
+				),
+				isError: false,
+			};
 		},
 	);
 

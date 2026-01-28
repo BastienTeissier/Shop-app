@@ -1,6 +1,27 @@
+import { randomUUID } from "node:crypto";
 import { McpServer } from "skybridge/server";
 import { z } from "zod";
-import { listProducts } from "./db.js";
+import {
+	type CartSnapshot,
+	createCart,
+	getCartBySessionId,
+	getCartSnapshot,
+	listProducts,
+} from "./db.js";
+
+const cartSessionSchema = z.string().uuid();
+const emptyCartSnapshot: CartSnapshot = {
+	items: [],
+	totalQuantity: 0,
+	totalPrice: 0,
+};
+const textContent = (text: string) => [{ type: "text" as const, text }];
+
+const invalidCartSessionResponse = {
+	structuredContent: { sessionId: undefined, cart: emptyCartSnapshot },
+	content: textContent("Invalid cart session"),
+	isError: true,
+};
 
 const server = new McpServer(
 	{
@@ -8,34 +29,117 @@ const server = new McpServer(
 		version: "0.0.1",
 	},
 	{ capabilities: {} },
-).registerWidget(
-	"ecom-carousel",
-	{
-		description: "E-commerce Product Carousel",
-	},
-	{
-		description: "Display a carousel of products from the store.",
-		inputSchema: {
-			query: z.string().describe("Search query for products"),
+)
+	.registerWidget(
+		"ecom-carousel",
+		{
+			description: "E-commerce Product Carousel",
 		},
-	},
-	async ({ query }) => {
-		try {
-			const filtered = await listProducts(query);
+		{
+			description: "Display a carousel of products from the store.",
+			inputSchema: {
+				query: z.string().describe("Search query for products"),
+			},
+		},
+		async ({ query }) => {
+			try {
+				const filtered = await listProducts(query);
 
-			return {
-				structuredContent: { products: filtered },
-				content: [{ type: "text", text: JSON.stringify(filtered) }],
-				isError: false,
-			};
-		} catch (error) {
-			return {
-				content: [{ type: "text", text: `Error: ${error}` }],
-				isError: true,
-			};
-		}
-	},
-);
+				return {
+					structuredContent: { products: filtered },
+					content: textContent(JSON.stringify(filtered)),
+					isError: false,
+				};
+			} catch (error) {
+				return {
+					content: textContent(`Error: ${error}`),
+					isError: true,
+				};
+			}
+		},
+	)
+	.registerWidget(
+		"cart",
+		{
+			description: "Cart mutation tool",
+		},
+		{
+			description: "Add or remove items from an anonymous cart session.",
+			inputSchema: {
+				action: z.enum(["add", "remove"]).describe("Cart mutation action"),
+				productId: z.number().int().positive().describe("Product ID"),
+				sessionId: z
+					.string()
+					.optional()
+					.describe("Anonymous cart session ID (UUID)"),
+			},
+		},
+		async ({ action, productId, sessionId }) => {
+			let resolvedSessionId = sessionId;
+			try {
+				if (sessionId) {
+					const validated = cartSessionSchema.safeParse(sessionId);
+					if (!validated.success) {
+						return invalidCartSessionResponse;
+					}
+				}
+
+				let cart = null;
+
+				if (sessionId) {
+					cart = await getCartBySessionId(sessionId);
+					if (!cart) {
+						return invalidCartSessionResponse;
+					}
+				} else {
+					resolvedSessionId = randomUUID();
+					try {
+						cart = await createCart(resolvedSessionId);
+					} catch (error) {
+						return {
+							structuredContent: {
+								sessionId: resolvedSessionId,
+								cart: emptyCartSnapshot,
+							},
+							content: textContent(`Error: ${error}`),
+							isError: true,
+						};
+					}
+				}
+
+				if (!cart) {
+					return invalidCartSessionResponse;
+				}
+
+				const cartSnapshot = await getCartSnapshot(cart.id);
+				void action;
+				void productId;
+
+				return {
+					structuredContent: {
+						sessionId: resolvedSessionId,
+						cart: cartSnapshot,
+					},
+					content: textContent(
+						JSON.stringify({
+							sessionId: resolvedSessionId,
+							cart: cartSnapshot,
+						}),
+					),
+					isError: false,
+				};
+			} catch (error) {
+				return {
+					structuredContent: {
+						sessionId: resolvedSessionId,
+						cart: emptyCartSnapshot,
+					},
+					content: textContent(`Error: ${error}`),
+					isError: true,
+				};
+			}
+		},
+	);
 
 export default server;
 export type AppType = typeof server;

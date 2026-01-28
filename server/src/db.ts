@@ -1,4 +1,4 @@
-import { PrismaClient, type Product } from "@prisma/client";
+import { type Cart, PrismaClient, type Product } from "@prisma/client";
 
 const globalForPrisma = globalThis as typeof globalThis & {
 	prisma?: PrismaClient;
@@ -43,6 +43,47 @@ export async function listProducts(
 		orderBy: { id: "desc" },
 		take: safeLimit,
 	});
+}
+
+export async function getCartBySessionId(
+	sessionId: string,
+): Promise<Cart | null> {
+	return prisma.cart.findUnique({
+		where: { sessionId },
+	});
+}
+
+export async function createCart(sessionId: string): Promise<Cart> {
+	return prisma.cart.create({
+		data: { sessionId },
+	});
+}
+
+export type CartSnapshotItem = {
+	productId: number;
+	quantity: number;
+	priceSnapshot: number;
+};
+
+export type CartSnapshot = {
+	items: CartSnapshotItem[];
+	totalQuantity: number;
+	totalPrice: number;
+};
+
+export async function getCartSnapshot(cartId: number): Promise<CartSnapshot> {
+	const items = await prisma.cartItem.findMany({
+		where: { cartId },
+		select: { productId: true, quantity: true, priceSnapshot: true },
+	});
+
+	const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
+	const totalPrice = items.reduce(
+		(sum, item) => sum + item.quantity * item.priceSnapshot,
+		0,
+	);
+
+	return { items, totalQuantity, totalPrice };
 }
 
 export type { Product };

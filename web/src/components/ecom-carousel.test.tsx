@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { EcomCarousel } from "./ecom-carousel";
@@ -11,6 +11,24 @@ type Product = {
 	price: number;
 };
 
+type CartSnapshotItem = {
+	productId: number;
+	quantity: number;
+	priceSnapshot: number;
+};
+
+type CartSnapshot = {
+	items: CartSnapshotItem[];
+	totalQuantity: number;
+	totalPrice: number;
+};
+
+const emptyCartSnapshot: CartSnapshot = {
+	items: [],
+	totalQuantity: 0,
+	totalPrice: 0,
+};
+
 const mocks = vi.hoisted(() => ({
 	locale: "en-US",
 	theme: "light",
@@ -18,7 +36,7 @@ const mocks = vi.hoisted(() => ({
 	openExternal: vi.fn(),
 	widgetState: undefined as
 		| {
-				ids: number[];
+				snapshot: CartSnapshot;
 				sessionId?: string;
 				cartDisabled?: boolean;
 				error?: string;
@@ -38,7 +56,7 @@ vi.mock("skybridge/web", async () => {
 		useOpenExternal: vi.fn(() => mocks.openExternal),
 		useWidgetState: vi.fn(
 			(initial: {
-				ids: number[];
+				snapshot: CartSnapshot;
 				sessionId?: string;
 				cartDisabled?: boolean;
 				error?: string;
@@ -88,6 +106,11 @@ describe("EcomCarousel", () => {
 			isError: false,
 			structuredContent: {
 				sessionId: "00000000-0000-0000-0000-000000000000",
+				cart: {
+					items: [{ productId: 1, quantity: 1, priceSnapshot: 1999 }],
+					totalQuantity: 1,
+					totalPrice: 1999,
+				},
 			},
 		});
 	});
@@ -159,7 +182,16 @@ describe("EcomCarousel", () => {
 			}),
 		];
 		mocks.requestModal = { open: vi.fn(), isOpen: true };
-		mocks.widgetState = { ids: [1, 2] };
+		mocks.widgetState = {
+			snapshot: {
+				items: [
+					{ productId: 1, quantity: 1, priceSnapshot: 1999 },
+					{ productId: 2, quantity: 1, priceSnapshot: 2500 },
+				],
+				totalQuantity: 2,
+				totalPrice: 4499,
+			},
+		};
 
 		renderCarousel({ products });
 
@@ -185,14 +217,22 @@ describe("EcomCarousel", () => {
 		expect(screen.getByRole("button", { name: "Ajouter" })).toBeInTheDocument();
 	});
 
-	it("disables cart actions on invalid session", async () => {
+	it("disables cart actions on invalid session and shows error banner", async () => {
 		mocks.callToolAsync.mockResolvedValueOnce({ isError: true });
 		renderCarousel();
 
 		const user = userEvent.setup();
 		await user.click(screen.getByRole("button", { name: "Add to cart" }));
 
-		expect(await screen.findByText("Invalid cart session")).toBeInTheDocument();
+		// Wait for error to be processed
+		await screen.findByText("Invalid cart session");
+
+		// Error banner should appear
+		expect(
+			screen.getByText("An error occur while updating your cart"),
+		).toBeInTheDocument();
+		expect(screen.getByText("Invalid cart session")).toBeInTheDocument();
+		// Cart should be reverted to empty, so button should show "Add to cart" again
 		expect(screen.getByRole("button", { name: "Add to cart" })).toBeDisabled();
 		expect(screen.getByRole("button", { name: /🛒/ })).toBeDisabled();
 	});
@@ -200,13 +240,18 @@ describe("EcomCarousel", () => {
 	it("calls cart tool with expected args", async () => {
 		const initialSessionId = "123e4567-e89b-12d3-a456-426614174000";
 		mocks.widgetState = {
-			ids: [],
+			snapshot: emptyCartSnapshot,
 			sessionId: initialSessionId,
 		};
 		mocks.callToolAsync.mockResolvedValueOnce({
 			isError: false,
 			structuredContent: {
 				sessionId: initialSessionId,
+				cart: {
+					items: [{ productId: 1, quantity: 1, priceSnapshot: 1999 }],
+					totalQuantity: 1,
+					totalPrice: 1999,
+				},
 			},
 		});
 		renderCarousel();
@@ -220,6 +265,14 @@ describe("EcomCarousel", () => {
 			sessionId: initialSessionId,
 		});
 
+		mocks.callToolAsync.mockResolvedValueOnce({
+			isError: false,
+			structuredContent: {
+				sessionId: initialSessionId,
+				cart: emptyCartSnapshot,
+			},
+		});
+
 		await user.click(await screen.findByRole("button", { name: "Remove" }));
 
 		expect(mocks.callToolAsync).toHaveBeenNthCalledWith(2, {
@@ -227,5 +280,85 @@ describe("EcomCarousel", () => {
 			productId: 1,
 			sessionId: initialSessionId,
 		});
+	});
+
+	it("optimistically updates UI then reconciles to server snapshot", async () => {
+		const serverSnapshot: CartSnapshot = {
+			items: [{ productId: 1, quantity: 1, priceSnapshot: 2000 }], // Server returns different price
+			totalQuantity: 1,
+			totalPrice: 2000,
+		};
+
+		let resolveToolCall: (value: unknown) => void;
+		const toolCallPromise = new Promise((resolve) => {
+			resolveToolCall = resolve;
+		});
+
+		mocks.callToolAsync.mockReturnValue(toolCallPromise);
+		renderCarousel();
+
+		const user = userEvent.setup();
+
+		// Click add - should optimistically show item in cart
+		await user.click(screen.getByRole("button", { name: "Add to cart" }));
+
+		// Optimistic state - shows "Remove" button immediately
+		expect(
+			await screen.findByRole("button", { name: "Remove" }),
+		).toBeInTheDocument();
+		expect(screen.getByRole("button", { name: /🛒/ })).toHaveTextContent("1");
+
+		// Resolve tool call with server snapshot (different price)
+		await act(async () => {
+			resolveToolCall?.({
+				isError: false,
+				structuredContent: {
+					sessionId: "00000000-0000-0000-0000-000000000000",
+					cart: serverSnapshot,
+				},
+			});
+		});
+
+		// Still shows Remove button after reconciliation
+		expect(screen.getByRole("button", { name: "Remove" })).toBeInTheDocument();
+	});
+
+	it("shows error banner on reconcile failure and auto-dismisses after 3s", async () => {
+		vi.useFakeTimers();
+
+		let rejectToolCall: (error: Error) => void;
+		const toolCallPromise = new Promise((_, reject) => {
+			rejectToolCall = reject;
+		});
+
+		mocks.callToolAsync.mockReturnValue(toolCallPromise);
+		renderCarousel();
+
+		const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+
+		// Click add to cart - starts the async call
+		await user.click(screen.getByRole("button", { name: "Add to cart" }));
+
+		// Reject the promise to trigger error handling
+		await act(async () => {
+			rejectToolCall?.(new Error("Network error"));
+		});
+
+		// Error banner should appear after the rejection
+		expect(
+			screen.getByText("An error occur while updating your cart"),
+		).toBeInTheDocument();
+
+		// Advance time by 3 seconds
+		await act(async () => {
+			vi.advanceTimersByTime(3000);
+		});
+
+		// Banner should be dismissed
+		expect(
+			screen.queryByText("An error occur while updating your cart"),
+		).not.toBeInTheDocument();
+
+		vi.useRealTimers();
 	});
 });

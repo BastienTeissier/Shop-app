@@ -1,6 +1,6 @@
 import "@/index.css";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
 	useLayout,
 	useOpenExternal,
@@ -10,30 +10,47 @@ import {
 } from "skybridge/web";
 import { useCallTool, useToolInfo } from "../helpers.js";
 
+type CartSnapshotItem = {
+	productId: number;
+	quantity: number;
+	priceSnapshot: number;
+};
+
+type CartSnapshot = {
+	items: CartSnapshotItem[];
+	totalQuantity: number;
+	totalPrice: number;
+};
+
 const translations: Record<string, Record<string, string>> = {
 	en: {
 		loading: "Loading products...",
 		noProducts: "No product found",
 		addToCart: "Add to cart",
 		removeFromCart: "Remove",
+		cartError: "An error occur while updating your cart",
 	},
 	fr: {
 		loading: "Chargement des produits...",
 		noProducts: "Aucun produit trouvé",
 		addToCart: "Ajouter",
 		removeFromCart: "Retirer",
+		cartError:
+			"Une erreur s'est produite lors de la mise à jour de votre panier",
 	},
 	es: {
 		loading: "Cargando productos...",
 		noProducts: "No se encontraron productos",
 		addToCart: "Añadir",
 		removeFromCart: "Quitar",
+		cartError: "Se produjo un error al actualizar tu carrito",
 	},
 	de: {
 		loading: "Produkte werden geladen...",
 		noProducts: "Keine Produkte gefunden",
 		addToCart: "Hinzufügen",
 		removeFromCart: "Entfernen",
+		cartError: "Beim Aktualisieren Ihres Warenkorbs ist ein Fehler aufgetreten",
 	},
 };
 
@@ -59,19 +76,64 @@ export function EcomCarousel() {
 
 	const { callToolAsync } = useCallTool("cart");
 	const [cart, setCart] = useWidgetState<{
-		ids: number[];
+		snapshot: CartSnapshot;
 		sessionId?: string;
 		cartDisabled?: boolean;
 		error?: string;
-	}>({ ids: [] });
+	}>({ snapshot: { items: [], totalQuantity: 0, totalPrice: 0 } });
+
+	const [errorBanner, setErrorBanner] = useState<string | null>(null);
+
+	useEffect(() => {
+		if (errorBanner) {
+			const timer = setTimeout(() => setErrorBanner(null), 3000);
+			return () => clearTimeout(timer);
+		}
+	}, [errorBanner]);
 
 	async function toggleCart(productId: number) {
 		if (cart.cartDisabled) {
 			return;
 		}
 
-		const inCart = cart.ids.includes(productId);
+		const inCart = cart.snapshot.items.some(
+			(item) => item.productId === productId,
+		);
 		const action = inCart ? "remove" : "add";
+
+		// Optimistic update
+		const product = products.find((p) => p.id === productId);
+		const optimisticSnapshot = inCart
+			? {
+					items: cart.snapshot.items.filter(
+						(item) => item.productId !== productId,
+					),
+					totalQuantity: cart.snapshot.totalQuantity - 1,
+					totalPrice:
+						cart.snapshot.totalPrice -
+						(cart.snapshot.items.find((item) => item.productId === productId)
+							?.priceSnapshot ?? 0),
+				}
+			: {
+					items: [
+						...cart.snapshot.items,
+						{
+							productId,
+							quantity: 1,
+							priceSnapshot: product?.price ?? 0,
+						},
+					],
+					totalQuantity: cart.snapshot.totalQuantity + 1,
+					totalPrice: cart.snapshot.totalPrice + (product?.price ?? 0),
+				};
+
+		setCart((prev) => ({
+			...prev,
+			snapshot: optimisticSnapshot,
+		}));
+
+		// Store pre-optimistic snapshot for potential rollback
+		const previousSnapshot = cart.snapshot;
 
 		try {
 			const response = await callToolAsync({
@@ -81,28 +143,35 @@ export function EcomCarousel() {
 			});
 
 			if (response?.isError) {
+				// Revert to previous snapshot and show error
+				setErrorBanner(translate("cartError"));
 				setCart((prev) => ({
 					...prev,
+					snapshot: previousSnapshot,
 					cartDisabled: true,
 					error: "Invalid cart session",
 				}));
 				return;
 			}
 
-			setCart((prev) => ({
-				...prev,
-				ids: inCart
-					? prev.ids.filter((id) => id !== productId)
-					: [...prev.ids, productId],
-				sessionId: response?.structuredContent?.sessionId ?? prev.sessionId,
-				cartDisabled: false,
-				error: undefined,
-			}));
+			const serverSnapshot = response?.structuredContent?.cart as
+				| CartSnapshot
+				| undefined;
+			if (serverSnapshot) {
+				setCart((prev) => ({
+					...prev,
+					snapshot: serverSnapshot,
+					sessionId: response?.structuredContent?.sessionId ?? prev.sessionId,
+					cartDisabled: false,
+					error: undefined,
+				}));
+			}
 		} catch (_error) {
+			// Reconciliation error: revert to previous state and show banner
+			setErrorBanner(translate("cartError"));
 			setCart((prev) => ({
 				...prev,
-				cartDisabled: true,
-				error: "Invalid cart session",
+				snapshot: previousSnapshot, // revert to pre-optimistic state
 			}));
 		}
 	}
@@ -124,31 +193,41 @@ export function EcomCarousel() {
 	}
 
 	if (isOpen) {
+		const cartProductIds = cart.snapshot.items.map((item) => item.productId);
 		const cartItems: Product[] = [];
-		let totalCents = 0;
 		for (const p of products) {
-			if (cart.ids.includes(p.id)) {
+			if (cartProductIds.includes(p.id)) {
 				cartItems.push(p);
-				totalCents += p.price;
 			}
 		}
 		const checkoutUrl = new URL(CHECKOUT_URL);
-		checkoutUrl.searchParams.set("cart", cart.ids.join(","));
+		checkoutUrl.searchParams.set("cart", cartProductIds.join(","));
 
 		return (
 			<div className={`${theme} checkout`}>
 				<div className="checkout-title">Order summary</div>
 				<div className="checkout-items">
-					{cartItems.map((item) => (
-						<div key={item.id} className="checkout-item">
-							<span>{item.title}</span>
-							<span>{formatPrice(item.price)}</span>
-						</div>
-					))}
+					{cartItems.map((item) => {
+						const cartItem = cart.snapshot.items.find(
+							(ci) => ci.productId === item.id,
+						);
+						const itemTotal =
+							(cartItem?.priceSnapshot ?? item.price) *
+							(cartItem?.quantity ?? 1);
+						return (
+							<div key={item.id} className="checkout-item">
+								<span>
+									{item.title}
+									{(cartItem?.quantity ?? 1) > 1 && ` (x${cartItem?.quantity})`}
+								</span>
+								<span>{formatPrice(itemTotal)}</span>
+							</div>
+						);
+					})}
 				</div>
 				<div className="checkout-total">
 					<span>Total</span>
-					<span>{formatPrice(totalCents)}</span>
+					<span>{formatPrice(cart.snapshot.totalPrice)}</span>
 				</div>
 				<button
 					type="button"
@@ -166,18 +245,21 @@ export function EcomCarousel() {
 
 	return (
 		<div className={`${theme} container`}>
+			{errorBanner && <div className="error-banner">{errorBanner}</div>}
 			<button
 				type="button"
 				className="cart-indicator"
 				onClick={() => open({ title: "Proceed to checkout ?" })}
-				disabled={cart.ids.length === 0 || cart.cartDisabled}
+				disabled={cart.snapshot.totalQuantity === 0 || cart.cartDisabled}
 			>
-				🛒 {cart.ids.length}
+				🛒 {cart.snapshot.totalQuantity}
 			</button>
 			{cart.error ? <div className="message">{cart.error}</div> : null}
 			<div className="carousel">
 				{products.map((product) => {
-					const inCart = cart.ids.includes(product.id);
+					const inCart = cart.snapshot.items.some(
+						(item) => item.productId === product.id,
+					);
 					return (
 						<div key={product.id} className="product-wrapper">
 							<button

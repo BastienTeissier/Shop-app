@@ -2,11 +2,12 @@ import { randomUUID } from "node:crypto";
 import { McpServer } from "skybridge/server";
 import { z } from "zod";
 import {
+	addToCart,
 	type CartSnapshot,
 	createCart,
 	getCartBySessionId,
-	getCartSnapshot,
 	listProducts,
+	removeFromCart,
 } from "./db.js";
 
 const cartSessionSchema = z.string().uuid();
@@ -111,9 +112,12 @@ const server = new McpServer(
 					return invalidCartSessionResponse;
 				}
 
-				const cartSnapshot = await getCartSnapshot(cart.id);
-				void action;
-				void productId;
+				let cartSnapshot: CartSnapshot;
+				if (action === "add") {
+					cartSnapshot = await addToCart(cart.id, productId);
+				} else {
+					cartSnapshot = await removeFromCart(cart.id, productId);
+				}
 
 				return {
 					structuredContent: {

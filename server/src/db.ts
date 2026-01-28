@@ -86,4 +86,51 @@ export async function getCartSnapshot(cartId: number): Promise<CartSnapshot> {
 	return { items, totalQuantity, totalPrice };
 }
 
+export async function addToCart(
+	cartId: number,
+	productId: number,
+): Promise<CartSnapshot> {
+	const existingItem = await prisma.cartItem.findFirst({
+		where: { cartId, productId },
+	});
+
+	if (existingItem) {
+		await prisma.cartItem.update({
+			where: { id: existingItem.id },
+			data: { quantity: existingItem.quantity + 1 },
+		});
+	} else {
+		const product = await prisma.product.findUnique({
+			where: { id: productId },
+			select: { price: true },
+		});
+
+		if (!product) {
+			return getCartSnapshot(cartId);
+		}
+
+		await prisma.cartItem.create({
+			data: {
+				cartId,
+				productId,
+				quantity: 1,
+				priceSnapshot: product.price,
+			},
+		});
+	}
+
+	return getCartSnapshot(cartId);
+}
+
+export async function removeFromCart(
+	cartId: number,
+	productId: number,
+): Promise<CartSnapshot> {
+	await prisma.cartItem.deleteMany({
+		where: { cartId, productId },
+	});
+
+	return getCartSnapshot(cartId);
+}
+
 export type { Product };

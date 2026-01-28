@@ -1,7 +1,7 @@
 import { Client } from "@modelcontextprotocol/sdk/client";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { PrismaClient } from "@prisma/client";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 const uuidRegex =
 	/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -10,6 +10,7 @@ describe("MCP tools/cart", () => {
 	let client: Client | undefined;
 	let prisma: PrismaClient | undefined;
 	let productId = 0;
+	const productPrice = 1999;
 
 	beforeAll(async () => {
 		if (!process.env.DATABASE_URL) {
@@ -26,7 +27,7 @@ describe("MCP tools/cart", () => {
 				title: "Test Bike",
 				description: "A fast test bike",
 				imageUrl: "https://example.com/test-bike.png",
-				price: 1999,
+				price: productPrice,
 			},
 		});
 		productId = product.id;
@@ -41,6 +42,12 @@ describe("MCP tools/cart", () => {
 			version: "0.0.0",
 		});
 		await client.connect(clientTransport);
+	});
+
+	beforeEach(async () => {
+		// Clean cart data between tests
+		await prisma?.cartItem.deleteMany();
+		await prisma?.cart.deleteMany();
 	});
 
 	afterAll(async () => {
@@ -66,9 +73,9 @@ describe("MCP tools/cart", () => {
 		expect(result.isError).toBe(false);
 		expect(result.structuredContent?.sessionId).toMatch(uuidRegex);
 		expect(result.structuredContent?.cart).toEqual({
-			items: [],
-			totalQuantity: 0,
-			totalPrice: 0,
+			items: [{ productId, quantity: 1, priceSnapshot: productPrice }],
+			totalQuantity: 1,
+			totalPrice: productPrice,
 		});
 	});
 
@@ -84,5 +91,84 @@ describe("MCP tools/cart", () => {
 
 		expect(result.isError).toBe(true);
 		expect(result.content?.[0]?.text).toBe("Invalid cart session");
+	});
+
+	it("increments quantity on repeated add", async () => {
+		if (!client) {
+			throw new Error("Client not initialized");
+		}
+
+		// First add
+		const firstResult = await client.callTool({
+			name: "cart",
+			arguments: { action: "add", productId },
+		});
+
+		expect(firstResult.isError).toBe(false);
+		const sessionId = firstResult.structuredContent?.sessionId;
+		expect(sessionId).toMatch(uuidRegex);
+
+		// Second add - should increment quantity
+		const secondResult = await client.callTool({
+			name: "cart",
+			arguments: { action: "add", productId, sessionId },
+		});
+
+		expect(secondResult.isError).toBe(false);
+		expect(secondResult.structuredContent?.cart).toEqual({
+			items: [{ productId, quantity: 2, priceSnapshot: productPrice }],
+			totalQuantity: 2,
+			totalPrice: productPrice * 2,
+		});
+	});
+
+	it("removes line on remove action", async () => {
+		if (!client) {
+			throw new Error("Client not initialized");
+		}
+
+		// First add item
+		const addResult = await client.callTool({
+			name: "cart",
+			arguments: { action: "add", productId },
+		});
+
+		expect(addResult.isError).toBe(false);
+		const sessionId = addResult.structuredContent?.sessionId;
+
+		// Then remove
+		const removeResult = await client.callTool({
+			name: "cart",
+			arguments: { action: "remove", productId, sessionId },
+		});
+
+		expect(removeResult.isError).toBe(false);
+		expect(removeResult.structuredContent?.cart).toEqual({
+			items: [],
+			totalQuantity: 0,
+			totalPrice: 0,
+		});
+	});
+
+	it("snapshots price on first add", async () => {
+		if (!client || !prisma) {
+			throw new Error("Client or Prisma not initialized");
+		}
+
+		// Add item to cart
+		const result = await client.callTool({
+			name: "cart",
+			arguments: { action: "add", productId },
+		});
+
+		expect(result.isError).toBe(false);
+		const cartItem = result.structuredContent?.cart?.items?.[0];
+		expect(cartItem?.priceSnapshot).toBe(productPrice);
+
+		// Verify price snapshot is stored in database
+		const dbCartItem = await prisma.cartItem.findFirst({
+			where: { productId },
+		});
+		expect(dbCartItem?.priceSnapshot).toBe(productPrice);
 	});
 });

@@ -8,7 +8,7 @@ import {
 	useUser,
 	useWidgetState,
 } from "skybridge/web";
-import { useToolInfo } from "../helpers.js";
+import { useCallTool, useToolInfo } from "../helpers.js";
 
 const translations: Record<string, Record<string, string>> = {
 	en: {
@@ -53,16 +53,57 @@ export function EcomCarousel() {
 	}
 
 	const { output, isPending } = useToolInfo<"ecom-carousel">();
-	type Product = NonNullable<typeof output>["products"][number];
+	const products = output?.products ?? [];
+	type Product = (typeof products)[number];
 	const [selected, setSelected] = useState<Product | null>(null);
 
-	const [cart, setCart] = useWidgetState<{ ids: number[] }>({ ids: [] });
+	const { callToolAsync } = useCallTool("cart");
+	const [cart, setCart] = useWidgetState<{
+		ids: number[];
+		sessionId?: string;
+		cartDisabled?: boolean;
+		error?: string;
+	}>({ ids: [] });
 
-	function toggleCart(productId: number) {
-		if (cart.ids.includes(productId)) {
-			setCart({ ids: cart.ids.filter((id) => id !== productId) });
-		} else {
-			setCart({ ids: [...cart.ids, productId] });
+	async function toggleCart(productId: number) {
+		if (cart.cartDisabled) {
+			return;
+		}
+
+		const inCart = cart.ids.includes(productId);
+		const action = inCart ? "remove" : "add";
+
+		try {
+			const response = await callToolAsync({
+				action,
+				productId,
+				sessionId: cart.sessionId,
+			});
+
+			if (response?.isError) {
+				setCart((prev) => ({
+					...prev,
+					cartDisabled: true,
+					error: "Invalid cart session",
+				}));
+				return;
+			}
+
+			setCart((prev) => ({
+				...prev,
+				ids: inCart
+					? prev.ids.filter((id) => id !== productId)
+					: [...prev.ids, productId],
+				sessionId: response?.structuredContent?.sessionId ?? prev.sessionId,
+				cartDisabled: false,
+				error: undefined,
+			}));
+		} catch (_error) {
+			setCart((prev) => ({
+				...prev,
+				cartDisabled: true,
+				error: "Invalid cart session",
+			}));
 		}
 	}
 
@@ -74,7 +115,7 @@ export function EcomCarousel() {
 		);
 	}
 
-	if (!output || output.products.length === 0) {
+	if (!output || products.length === 0) {
 		return (
 			<div className={`${theme} container`}>
 				<div className="message">{translate("noProducts")}</div>
@@ -85,7 +126,7 @@ export function EcomCarousel() {
 	if (isOpen) {
 		const cartItems: Product[] = [];
 		let totalCents = 0;
-		for (const p of output.products) {
+		for (const p of products) {
 			if (cart.ids.includes(p.id)) {
 				cartItems.push(p);
 				totalCents += p.price;
@@ -113,6 +154,7 @@ export function EcomCarousel() {
 					type="button"
 					className="checkout-button"
 					onClick={() => openExternal(checkoutUrl.toString())}
+					disabled={cart.cartDisabled}
 				>
 					Checkout
 				</button>
@@ -120,7 +162,7 @@ export function EcomCarousel() {
 		);
 	}
 
-	const activeProduct = selected ?? output.products[0];
+	const activeProduct = selected ?? products[0];
 
 	return (
 		<div className={`${theme} container`}>
@@ -128,12 +170,13 @@ export function EcomCarousel() {
 				type="button"
 				className="cart-indicator"
 				onClick={() => open({ title: "Proceed to checkout ?" })}
-				disabled={cart.ids.length === 0}
+				disabled={cart.ids.length === 0 || cart.cartDisabled}
 			>
 				🛒 {cart.ids.length}
 			</button>
+			{cart.error ? <div className="message">{cart.error}</div> : null}
 			<div className="carousel">
-				{output.products.map((product) => {
+				{products.map((product) => {
 					const inCart = cart.ids.includes(product.id);
 					return (
 						<div key={product.id} className="product-wrapper">
@@ -158,6 +201,7 @@ export function EcomCarousel() {
 								type="button"
 								className={`cart-button ${inCart ? "in-cart" : ""}`}
 								onClick={() => toggleCart(product.id)}
+								disabled={cart.cartDisabled}
 							>
 								{inCart ? translate("removeFromCart") : translate("addToCart")}
 							</button>

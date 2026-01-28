@@ -5,6 +5,10 @@
 		"moduleResolution": "bundler",
 		"lib": ["ES2022", "DOM", "DOM.Iterable"],
 		"jsx": "react-jsx",
+		"baseUrl": ".",
+		"paths": {
+			"@/*": ["web/src/*"]
+		},
 
 		"strict": true,
 		"skipLibCheck": true,

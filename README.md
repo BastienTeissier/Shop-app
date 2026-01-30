@@ -98,6 +98,25 @@ Modify files in `server/` and reload your ChatGPT connector in **Settings → Co
 - Use [Alpic](https://alpic.ai/) to deploy your OpenAI App to production
 - In ChatGPT, navigate to **Settings → Connectors → Create** and add your MCP server URL (e.g., `https://your-app-name.alpic.live`)
 
+## Path Aliases
+
+The project uses TypeScript path aliases for cleaner imports:
+
+| Alias | Target | Usage |
+|-------|--------|-------|
+| `@/*` | `web/src/*` | Frontend components and helpers |
+| `@shared/*` | `shared/*` | Shared types used by both frontend and backend |
+
+### Examples
+
+```typescript
+// Import shared types
+import type { Product, CartSnapshot } from "@shared/types.js";
+
+// Import frontend helpers (within web/src/)
+import { useToolInfo } from "@/helpers.js";
+```
+
 ## Resources
 
 - [Apps SDK Documentation](https://developers.openai.com/apps-sdk)

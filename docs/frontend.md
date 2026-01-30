@@ -13,11 +13,17 @@ web/
     ├── index.css           # Global styles (injected in widgets)
     ├── helpers.ts          # Typed Skybridge hooks generator
     ├── components/         # Reusable React components
-    │   └── ecom-carousel.tsx
+    │   ├── ecom-carousel.tsx
+    │   ├── ecom-carousel.test.tsx
+    │   ├── cart-summary.tsx
+    │   └── cart-summary.test.tsx
     ├── widgets/            # Widget entry points (mounted by Skybridge)
-    │   └── ecom-carousel.tsx
+    │   ├── ecom-carousel.tsx
+    │   └── cart-summary.tsx
     └── test/
         └── setup.ts        # Vitest setup with Testing Library
+shared/
+└── types.ts                # Domain types shared with server
 ```
 
 ## Widget vs Component
@@ -79,13 +85,17 @@ function MyWidget() {
 
 ```tsx
 import "@/index.css";
+import type { CartSnapshot, Product } from "@shared/types.js";
 import { useLayout, useWidgetState } from "skybridge/web";
 import { useToolInfo } from "../helpers.js";
 
 export function MyWidget() {
   const { theme } = useLayout();
   const { output, isPending } = useToolInfo<"my-widget">();
-  const [state, setState] = useWidgetState({ items: [] });
+  const [cart, setCart] = useWidgetState<{
+    snapshot: CartSnapshot;
+    sessionId?: string;
+  }>({ snapshot: { items: [], totalQuantity: 0, totalPrice: 0 } });
 
   if (isPending) return <div className={theme}>Loading...</div>;
   if (!output) return <div className={theme}>No data</div>;
@@ -93,6 +103,17 @@ export function MyWidget() {
   return <div className={`${theme} container`}>{/* Render output.data */}</div>;
 }
 ```
+
+## Shared Types
+
+Domain types are defined once in `shared/types.ts` and used across the codebase:
+
+```typescript
+// Import shared types for explicit typing
+import type { Product, CartSnapshot, CartSummaryItem } from "@shared/types.js";
+```
+
+The `@shared/*` path alias is configured in `tsconfig.json`.
 
 ## Styling
 

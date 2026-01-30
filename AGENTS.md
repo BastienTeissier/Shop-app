@@ -21,12 +21,23 @@ An e-commerce carousel application built as a ChatGPT plugin. Users search for p
 
 ```
 sport-shop/
+├── shared/
+│   └── types.ts              # Domain types (Product, CartSnapshot, etc.)
 ├── server/
 │   ├── src/
 │   │   ├── index.ts          # Express app setup
-│   │   ├── server.ts         # MCP server with widget registration
+│   │   ├── server.ts         # MCP server orchestration (no business logic)
 │   │   ├── middleware.ts     # MCP transport handler
-│   │   └── db.ts             # Prisma client & query functions
+│   │   ├── db/               # Database layer
+│   │   │   ├── client.ts     # Prisma singleton + lifecycle
+│   │   │   ├── products.ts   # Product domain queries
+│   │   │   ├── cart.ts       # Cart domain queries
+│   │   │   └── index.ts      # Barrel re-exports
+│   │   └── tools/            # Widget handlers (business logic)
+│   │       ├── utils.ts      # Shared utilities
+│   │       ├── ecom-carousel.ts
+│   │       ├── cart.ts
+│   │       └── cart-summary.ts
 │   └── tests/
 │       └── *.integration.test.ts
 ├── web/
@@ -43,11 +54,32 @@ sport-shop/
 ├── scripts/
 │   └── load-products.ts      # Seed script
 └── docs/
-    ├── agent.md              # This file
     ├── backend.md            # Backend patterns
     ├── frontend.md           # Frontend patterns
     └── testing.md            # Testing patterns
 ```
+
+### Architecture Patterns
+
+**Folder Organization**
+- **Modular by domain**: Split large files into folders (`db/`, `tools/`)
+- **Barrel exports**: Each folder has `index.ts` re-exporting public API
+- **Shared code**: `shared/` at root for cross-boundary types
+
+**Naming Conventions**
+- **Functions**: Domain prefix + action (e.g., `cartAddItem`, `productList`)
+- **Handler files**: Match widget name exactly (`ecom-carousel.ts`)
+- **Types**: PascalCase, suffixed by role (`CartSnapshot`, `CartSummaryItem`)
+- **Handler exports**: `<name>Options`, `<name>ToolOptions`, `<name>Handler`
+
+**Type Sharing**
+- Domain types live in `shared/types.ts`
+- Import via `@shared/types.js` alias
+- Server re-exports types from `db/*.ts` for backwards compatibility
+
+**Import Style**
+- Prefer granular imports over barrel imports for clarity
+- Group order: external → shared → relative
 
 ### Key Boundaries
 

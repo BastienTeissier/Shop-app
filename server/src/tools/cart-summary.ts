@@ -5,6 +5,7 @@ import {
 	cartGetSummary,
 } from "../db/cart.js";
 import {
+	ERRORS,
 	errorResponse,
 	successResponse,
 	validateCartSession,
@@ -43,12 +44,12 @@ const emptyCartSummary = (sessionId: string): CartSummaryData => ({
 export async function cartSummaryHandler({ sessionId }: { sessionId: string }) {
 	const validation = validateCartSession(sessionId);
 	if (!validation.valid) {
-		return errorResponse("Invalid cart session", emptyCartSummary(sessionId));
+		return errorResponse(ERRORS.INVALID_CART_SESSION, emptyCartSummary(sessionId));
 	}
 
 	const cart = await cartGetBySessionId(sessionId);
 	if (!cart) {
-		return errorResponse("Invalid cart session", emptyCartSummary(sessionId));
+		return errorResponse(ERRORS.INVALID_CART_SESSION, emptyCartSummary(sessionId));
 	}
 
 	const summary: CartSummary = await cartGetSummary(sessionId);

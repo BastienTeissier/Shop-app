@@ -8,6 +8,7 @@ import {
 	cartRemoveItem,
 } from "../db/cart.js";
 import {
+	ERRORS,
 	emptyCartSnapshot,
 	errorResponse,
 	successResponse,
@@ -52,7 +53,7 @@ export async function cartHandler({ action, productId, sessionId }: CartInput) {
 		if (sessionId) {
 			const validation = validateCartSession(sessionId);
 			if (!validation.valid) {
-				return errorResponse("Invalid cart session", invalidSessionData);
+				return errorResponse(ERRORS.INVALID_CART_SESSION, invalidSessionData);
 			}
 		}
 
@@ -61,7 +62,7 @@ export async function cartHandler({ action, productId, sessionId }: CartInput) {
 		if (sessionId) {
 			cart = await cartGetBySessionId(sessionId);
 			if (!cart) {
-				return errorResponse("Invalid cart session", invalidSessionData);
+				return errorResponse(ERRORS.INVALID_CART_SESSION, invalidSessionData);
 			}
 		} else {
 			resolvedSessionId = randomUUID();
@@ -76,7 +77,7 @@ export async function cartHandler({ action, productId, sessionId }: CartInput) {
 		}
 
 		if (!cart) {
-			return errorResponse("Invalid cart session", invalidSessionData);
+			return errorResponse(ERRORS.INVALID_CART_SESSION, invalidSessionData);
 		}
 
 		let cartSnapshot: CartSnapshot;

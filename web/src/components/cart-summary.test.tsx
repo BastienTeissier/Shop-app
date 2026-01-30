@@ -1,15 +1,7 @@
+import type { CartSummaryItem } from "@shared/types.js";
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { CartSummary } from "./cart-summary";
-
-type CartSummaryItem = {
-	productId: number;
-	title: string;
-	imageUrl: string;
-	unitPriceSnapshot: number;
-	quantity: number;
-	lineTotal: number;
-};
 
 const mocks = vi.hoisted(() => ({
 	theme: "light",

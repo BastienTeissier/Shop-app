@@ -1,27 +1,8 @@
+import type { CartSnapshot, Product } from "@shared/types.js";
 import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { EcomCarousel } from "./ecom-carousel";
-
-type Product = {
-	id: number;
-	title: string;
-	description: string;
-	imageUrl: string;
-	price: number;
-};
-
-type CartSnapshotItem = {
-	productId: number;
-	quantity: number;
-	priceSnapshot: number;
-};
-
-type CartSnapshot = {
-	items: CartSnapshotItem[];
-	totalQuantity: number;
-	totalPrice: number;
-};
 
 const emptyCartSnapshot: CartSnapshot = {
 	items: [],

@@ -1,5 +1,8 @@
-import type { Product } from "@prisma/client";
+import type { Product as PrismaProduct } from "@prisma/client";
+import type { Product } from "@shared/types.js";
 import { prisma } from "./client.js";
+
+export type { Product } from "@shared/types.js";
 
 export async function productList(
 	query: string,
@@ -12,7 +15,7 @@ export async function productList(
 		return [];
 	}
 
-	return prisma.product.findMany({
+	const products: PrismaProduct[] = await prisma.product.findMany({
 		where: {
 			OR: [
 				{ title: { contains: trimmedQuery } },
@@ -22,6 +25,6 @@ export async function productList(
 		orderBy: { id: "desc" },
 		take: safeLimit,
 	});
-}
 
-export type { Product };
+	return products;
+}

@@ -1,5 +1,6 @@
 import "@/index.css";
 
+import type { CartSnapshot, Product } from "@shared/types.js";
 import { useEffect, useState } from "react";
 import {
 	useLayout,
@@ -9,18 +10,6 @@ import {
 	useWidgetState,
 } from "skybridge/web";
 import { useCallTool, useToolInfo } from "../helpers.js";
-
-type CartSnapshotItem = {
-	productId: number;
-	quantity: number;
-	priceSnapshot: number;
-};
-
-type CartSnapshot = {
-	items: CartSnapshotItem[];
-	totalQuantity: number;
-	totalPrice: number;
-};
 
 const translations: Record<string, Record<string, string>> = {
 	en: {
@@ -71,7 +60,6 @@ export function EcomCarousel() {
 
 	const { output, isPending } = useToolInfo<"ecom-carousel">();
 	const products = output?.products ?? [];
-	type Product = (typeof products)[number];
 	const [selected, setSelected] = useState<Product | null>(null);
 
 	const { callToolAsync } = useCallTool("cart");

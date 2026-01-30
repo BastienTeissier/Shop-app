@@ -1,31 +1,17 @@
 import type { Cart } from "@prisma/client";
+import type {
+	CartSnapshot,
+	CartSummary,
+	CartSummaryItem,
+} from "@shared/types.js";
 import { prisma } from "./client.js";
 
-export type CartSnapshotItem = {
-	productId: number;
-	quantity: number;
-	priceSnapshot: number;
-};
-
-export type CartSnapshot = {
-	items: CartSnapshotItem[];
-	totalQuantity: number;
-	totalPrice: number;
-};
-
-export type CartSummaryItem = {
-	productId: number;
-	title: string;
-	imageUrl: string;
-	unitPriceSnapshot: number;
-	quantity: number;
-	lineTotal: number;
-};
-
-export type CartSummary = {
-	items: CartSummaryItem[];
-	subtotal: number;
-};
+export type {
+	CartSnapshot,
+	CartSnapshotItem,
+	CartSummary,
+	CartSummaryItem,
+} from "@shared/types.js";
 
 export async function cartGetBySessionId(
 	sessionId: string,

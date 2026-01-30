@@ -1,15 +1,15 @@
 import { McpServer } from "skybridge/server";
-import { cartHandler, cartOptions, cartToolOptions } from "./tools/cart.js";
 import {
+	cartHandler,
+	cartOptions,
 	cartSummaryHandler,
 	cartSummaryOptions,
 	cartSummaryToolOptions,
-} from "./tools/cart-summary.js";
-import {
+	cartToolOptions,
 	ecomCarouselHandler,
 	ecomCarouselOptions,
 	ecomCarouselToolOptions,
-} from "./tools/ecom-carousel.js";
+} from "./tools/index.js";
 
 const server = new McpServer(
 	{

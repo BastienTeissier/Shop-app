@@ -1,7 +1,9 @@
-# Ecommerce Carousel Example
+# Ecommerce App
 
 ## What This Example Showcases
+
 This "Ecommerce Carousel" example demonstrates key Skybridge capabilities:
+
 - **Interactive Widget Rendering**: A React-based widget that displays an interactive product carousel directly in AI conversations
 - **Tool Info Access**: Widgets access tool input, output, and metadata via `useToolInfo()` hook
 - **Theme Support**: Adapts to light/dark mode using the `useLayout()` hook
@@ -11,11 +13,6 @@ This "Ecommerce Carousel" example demonstrates key Skybridge capabilities:
 - **External Links**: Opens external URL for checkout completion via `useOpenExternal()` hook
 - **External API Integration**: Demonstrates fetching data from REST APIs
 - **Hot Module Replacement**: Live reloading of widget components during development
-
-This example serves as a comprehensive reference for building sophisticated, interactive widgets that leverage Skybridge's full feature set.
-
-## Live Demo
-Try it for yourself: `https://ecommerce.skybridge.tech/mcp`
 
 ## Getting Started
 
@@ -29,13 +26,7 @@ Try it for yourself: `https://ecommerce.skybridge.tech/mcp`
 #### 1. Install
 
 ```bash
-npm install
-# or
-yarn install
-# or
 pnpm install
-# or
-bun install
 ```
 
 #### 2. Start your local server
@@ -43,14 +34,9 @@ bun install
 Run the development server from the root directory:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
 pnpm dev
-# or
-bun dev
 ```
+
 
 This command starts an Express server on port 3000. This server packages:
 
@@ -61,21 +47,25 @@ This command starts an Express server on port 3000. This server packages:
 
 - Set `DATABASE_URL` in `.env` (example: `DATABASE_URL=file:../shop.db`).
 - Run migrations and seed data:
+
 ```bash
 pnpm db:migrate
 pnpm db:seed
 ```
 
 Future Postgres migration plan (high level):
+
 - Switch Prisma provider to `postgresql` and update `DATABASE_URL`.
 - Create new migrations for Postgres, migrate data, then run `pnpm db:deploy`.
 
 #### 3. Connect to ChatGPT
 
 - ChatGPT requires connectors to be publicly accessible. To expose your server on the Internet, run:
+
 ```bash
 ngrok http 3000
 ```
+
 - In ChatGPT, navigate to **Settings → Connectors → Create** and add the forwarding URL provided by ngrok suffixed with `/mcp` (e.g. `https://3785c5ddc4b6.ngrok-free.app/mcp`)
 
 ### Create your first widget
@@ -102,10 +92,10 @@ Modify files in `server/` and reload your ChatGPT connector in **Settings → Co
 
 The project uses TypeScript path aliases for cleaner imports:
 
-| Alias | Target | Usage |
-|-------|--------|-------|
-| `@/*` | `web/src/*` | Frontend components and helpers |
-| `@shared/*` | `shared/*` | Shared types used by both frontend and backend |
+| Alias       | Target      | Usage                                          |
+| ----------- | ----------- | ---------------------------------------------- |
+| `@/*`       | `web/src/*` | Frontend components and helpers                |
+| `@shared/*` | `shared/*`  | Shared types used by both frontend and backend |
 
 ### Examples
 

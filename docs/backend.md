@@ -38,7 +38,11 @@ Widgets are registered on the `McpServer` instance using the fluent `.registerWi
 ```typescript
 // server/src/server.ts (orchestration only - no business logic)
 import { McpServer } from "skybridge/server";
-import { myWidgetHandler, myWidgetOptions, myWidgetToolOptions } from "./tools/my-widget.js";
+import {
+  myWidgetHandler,
+  myWidgetOptions,
+  myWidgetToolOptions,
+} from "./tools/my-widget.js";
 
 const server = new McpServer(
   { name: "app-name", version: "0.0.1" },

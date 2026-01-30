@@ -1,6 +1,7 @@
 import type { CartSummaryItem } from "@shared/types.js";
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { makeCartSummaryItem } from "../test/factories";
 import { CartSummary } from "./cart-summary";
 
 const mocks = vi.hoisted(() => ({
@@ -15,18 +16,6 @@ vi.mock("skybridge/web", () => ({
 vi.mock("../helpers.js", () => ({
 	useToolInfo: mocks.useToolInfo,
 }));
-
-const makeItem = (
-	overrides: Partial<CartSummaryItem> = {},
-): CartSummaryItem => ({
-	productId: 1,
-	title: "Road Bike",
-	imageUrl: "https://example.com/road-bike.png",
-	unitPriceSnapshot: 1999,
-	quantity: 1,
-	lineTotal: 1999,
-	...overrides,
-});
 
 const renderSummary = (options?: {
 	items?: CartSummaryItem[];
@@ -48,13 +37,13 @@ describe("CartSummary", () => {
 
 	it("renders items and subtotal", () => {
 		const items = [
-			makeItem({
+			makeCartSummaryItem({
 				productId: 1,
 				title: "Road Bike",
 				unitPriceSnapshot: 1999,
 				lineTotal: 1999,
 			}),
-			makeItem({
+			makeCartSummaryItem({
 				productId: 2,
 				title: "Helmet",
 				unitPriceSnapshot: 499,

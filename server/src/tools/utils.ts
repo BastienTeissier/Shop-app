@@ -3,6 +3,28 @@ import { z } from "zod";
 
 export const textContent = (text: string) => [{ type: "text" as const, text }];
 
+/**
+ * Build a successful MCP response with structured content and text fallback.
+ */
+export function successResponse<T>(data: T) {
+	return {
+		structuredContent: data,
+		content: textContent(JSON.stringify(data)),
+		isError: false,
+	};
+}
+
+/**
+ * Build an error MCP response with optional structured content.
+ */
+export function errorResponse<T = undefined>(message: string, data?: T) {
+	return {
+		structuredContent: data,
+		content: textContent(message),
+		isError: true,
+	};
+}
+
 const cartSessionSchema = z.string().uuid();
 
 export type CartSessionValidation =

@@ -4,7 +4,11 @@ import {
 	cartGetBySessionId,
 	cartGetSummary,
 } from "../db/cart.js";
-import { textContent, validateCartSession } from "./utils.js";
+import {
+	errorResponse,
+	successResponse,
+	validateCartSession,
+} from "./utils.js";
 
 export const cartSummaryOptions = {
 	description: "Cart summary widget",
@@ -24,40 +28,34 @@ export const cartSummaryToolOptions = {
 	},
 };
 
+type CartSummaryData = {
+	sessionId: string;
+	items: CartSummary["items"];
+	subtotal: number;
+};
+
+const emptyCartSummary = (sessionId: string): CartSummaryData => ({
+	sessionId,
+	items: [],
+	subtotal: 0,
+});
+
 export async function cartSummaryHandler({ sessionId }: { sessionId: string }) {
 	const validation = validateCartSession(sessionId);
 	if (!validation.valid) {
-		return {
-			structuredContent: { sessionId, items: [], subtotal: 0 },
-			content: textContent("Invalid cart session"),
-			isError: true,
-		};
+		return errorResponse("Invalid cart session", emptyCartSummary(sessionId));
 	}
 
 	const cart = await cartGetBySessionId(sessionId);
 	if (!cart) {
-		return {
-			structuredContent: { sessionId, items: [], subtotal: 0 },
-			content: textContent("Invalid cart session"),
-			isError: true,
-		};
+		return errorResponse("Invalid cart session", emptyCartSummary(sessionId));
 	}
 
 	const summary: CartSummary = await cartGetSummary(sessionId);
 
-	return {
-		structuredContent: {
-			sessionId,
-			items: summary.items,
-			subtotal: summary.subtotal,
-		},
-		content: textContent(
-			JSON.stringify({
-				sessionId,
-				items: summary.items,
-				subtotal: summary.subtotal,
-			}),
-		),
-		isError: false,
-	};
+	return successResponse({
+		sessionId,
+		items: summary.items,
+		subtotal: summary.subtotal,
+	});
 }

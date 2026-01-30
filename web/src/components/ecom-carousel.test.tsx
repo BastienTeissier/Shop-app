@@ -2,13 +2,13 @@ import type { CartSnapshot, Product } from "@shared/types.js";
 import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import {
+	emptyCartSnapshot,
+	makeCartSnapshot,
+	makeCartSnapshotItem,
+	makeProduct,
+} from "../test/factories";
 import { EcomCarousel } from "./ecom-carousel";
-
-const emptyCartSnapshot: CartSnapshot = {
-	items: [],
-	totalQuantity: 0,
-	totalPrice: 0,
-};
 
 const mocks = vi.hoisted(() => ({
 	locale: "en-US",
@@ -54,16 +54,6 @@ vi.mock("../helpers.js", () => ({
 	useCallTool: () => ({ callToolAsync: mocks.callToolAsync }),
 }));
 
-// TODO: setup factories for tests when more tests files are added
-const makeProduct = (overrides: Partial<Product> = {}): Product => ({
-	id: 1,
-	title: "Road Bike",
-	description: "Fast bike",
-	imageUrl: "https://example.com/road-bike.png",
-	price: 1999,
-	...overrides,
-});
-
 const renderCarousel = (options?: {
 	products?: Product[] | null;
 	isPending?: boolean;
@@ -87,11 +77,11 @@ describe("EcomCarousel", () => {
 			isError: false,
 			structuredContent: {
 				sessionId: "00000000-0000-0000-0000-000000000000",
-				cart: {
-					items: [{ productId: 1, quantity: 1, priceSnapshot: 1999 }],
+				cart: makeCartSnapshot({
+					items: [makeCartSnapshotItem()],
 					totalQuantity: 1,
 					totalPrice: 1999,
-				},
+				}),
 			},
 		});
 	});

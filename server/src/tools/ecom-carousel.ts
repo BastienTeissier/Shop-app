@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { productList } from "../db/products.js";
-import { textContent } from "./utils.js";
+import { errorResponse, successResponse } from "./utils.js";
 
 export const ecomCarouselOptions = {
 	description: "E-commerce Product Carousel",
@@ -23,16 +23,8 @@ export const ecomCarouselToolOptions = {
 export async function ecomCarouselHandler({ query }: { query: string }) {
 	try {
 		const filtered = await productList(query);
-
-		return {
-			structuredContent: { products: filtered },
-			content: textContent(JSON.stringify(filtered)),
-			isError: false,
-		};
+		return successResponse({ products: filtered });
 	} catch (error) {
-		return {
-			content: textContent(`Error: ${error}`),
-			isError: true,
-		};
+		return errorResponse(`Error: ${error}`);
 	}
 }

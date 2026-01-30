@@ -9,7 +9,8 @@ import {
 } from "../db/cart.js";
 import {
 	emptyCartSnapshot,
-	textContent,
+	errorResponse,
+	successResponse,
 	validateCartSession,
 } from "./utils.js";
 
@@ -35,10 +36,14 @@ type CartInput = {
 	sessionId?: string;
 };
 
-const invalidCartSessionResponse = {
-	structuredContent: { sessionId: undefined, cart: emptyCartSnapshot },
-	content: textContent("Invalid cart session"),
-	isError: true,
+type CartResponseData = {
+	sessionId: string | undefined;
+	cart: CartSnapshot;
+};
+
+const invalidSessionData: CartResponseData = {
+	sessionId: undefined,
+	cart: emptyCartSnapshot,
 };
 
 export async function cartHandler({ action, productId, sessionId }: CartInput) {
@@ -47,7 +52,7 @@ export async function cartHandler({ action, productId, sessionId }: CartInput) {
 		if (sessionId) {
 			const validation = validateCartSession(sessionId);
 			if (!validation.valid) {
-				return invalidCartSessionResponse;
+				return errorResponse("Invalid cart session", invalidSessionData);
 			}
 		}
 
@@ -56,26 +61,22 @@ export async function cartHandler({ action, productId, sessionId }: CartInput) {
 		if (sessionId) {
 			cart = await cartGetBySessionId(sessionId);
 			if (!cart) {
-				return invalidCartSessionResponse;
+				return errorResponse("Invalid cart session", invalidSessionData);
 			}
 		} else {
 			resolvedSessionId = randomUUID();
 			try {
 				cart = await cartCreate(resolvedSessionId);
 			} catch (error) {
-				return {
-					structuredContent: {
-						sessionId: resolvedSessionId,
-						cart: emptyCartSnapshot,
-					},
-					content: textContent(`Error: ${error}`),
-					isError: true,
-				};
+				return errorResponse(`Error: ${error}`, {
+					sessionId: resolvedSessionId,
+					cart: emptyCartSnapshot,
+				});
 			}
 		}
 
 		if (!cart) {
-			return invalidCartSessionResponse;
+			return errorResponse("Invalid cart session", invalidSessionData);
 		}
 
 		let cartSnapshot: CartSnapshot;
@@ -85,27 +86,14 @@ export async function cartHandler({ action, productId, sessionId }: CartInput) {
 			cartSnapshot = await cartRemoveItem(cart.id, productId);
 		}
 
-		return {
-			structuredContent: {
-				sessionId: resolvedSessionId,
-				cart: cartSnapshot,
-			},
-			content: textContent(
-				JSON.stringify({
-					sessionId: resolvedSessionId,
-					cart: cartSnapshot,
-				}),
-			),
-			isError: false,
-		};
+		return successResponse({
+			sessionId: resolvedSessionId,
+			cart: cartSnapshot,
+		});
 	} catch (error) {
-		return {
-			structuredContent: {
-				sessionId: resolvedSessionId,
-				cart: emptyCartSnapshot,
-			},
-			content: textContent(`Error: ${error}`),
-			isError: true,
-		};
+		return errorResponse(`Error: ${error}`, {
+			sessionId: resolvedSessionId,
+			cart: emptyCartSnapshot,
+		});
 	}
 }

@@ -1,4 +1,4 @@
-import type { CartSnapshot, Product } from "@shared/types.js";
+import type { CartSnapshot, CartWidgetState, Product } from "@shared/types.js";
 import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -15,14 +15,7 @@ const mocks = vi.hoisted(() => ({
 	theme: "light",
 	requestModal: { open: vi.fn(), isOpen: false },
 	openExternal: vi.fn(),
-	widgetState: undefined as
-		| {
-				snapshot: CartSnapshot;
-				sessionId?: string;
-				cartDisabled?: boolean;
-				error?: string;
-		  }
-		| undefined,
+	widgetState: undefined as CartWidgetState | undefined,
 	useToolInfo: vi.fn(),
 	callToolAsync: vi.fn(),
 }));
@@ -35,17 +28,10 @@ vi.mock("skybridge/web", async () => {
 		useUser: vi.fn(() => ({ locale: mocks.locale })),
 		useRequestModal: vi.fn(() => mocks.requestModal),
 		useOpenExternal: vi.fn(() => mocks.openExternal),
-		useWidgetState: vi.fn(
-			(initial: {
-				snapshot: CartSnapshot;
-				sessionId?: string;
-				cartDisabled?: boolean;
-				error?: string;
-			}) => {
-				const [state, setState] = React.useState(mocks.widgetState ?? initial);
-				return [state, setState] as const;
-			},
-		),
+		useWidgetState: vi.fn((initial: CartWidgetState) => {
+			const [state, setState] = React.useState(mocks.widgetState ?? initial);
+			return [state, setState] as const;
+		}),
 	};
 });
 

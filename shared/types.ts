@@ -20,6 +20,14 @@ export type CartSnapshot = {
 	totalPrice: number;
 };
 
+// Cart widget state (used by useWidgetState in ecom-carousel)
+export type CartWidgetState = {
+	snapshot: CartSnapshot;
+	sessionId?: string;
+	cartDisabled?: boolean;
+	error?: string;
+};
+
 // Cart summary types (used by cart-summary widget)
 export type CartSummaryItem = {
 	productId: number;

@@ -1,6 +1,6 @@
 import "@/index.css";
 
-import type { CartSnapshot, Product } from "@shared/types.js";
+import type { CartSnapshot, CartWidgetState, Product } from "@shared/types.js";
 import { useEffect, useState } from "react";
 import {
 	useLayout,
@@ -63,12 +63,9 @@ export function EcomCarousel() {
 	const [selected, setSelected] = useState<Product | null>(null);
 
 	const { callToolAsync } = useCallTool("cart");
-	const [cart, setCart] = useWidgetState<{
-		snapshot: CartSnapshot;
-		sessionId?: string;
-		cartDisabled?: boolean;
-		error?: string;
-	}>({ snapshot: { items: [], totalQuantity: 0, totalPrice: 0 } });
+	const [cart, setCart] = useWidgetState<CartWidgetState>({
+		snapshot: { items: [], totalQuantity: 0, totalPrice: 0 },
+	});
 
 	const [errorBanner, setErrorBanner] = useState<string | null>(null);
 

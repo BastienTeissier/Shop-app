@@ -39,6 +39,8 @@ describe("MCP tools/call", () => {
 	afterAll(async () => {
 		await client?.close();
 		if (prisma) {
+			await prisma.cartItem.deleteMany();
+			await prisma.cart.deleteMany();
 			await prisma.product.deleteMany();
 			await prisma.$disconnect();
 		}

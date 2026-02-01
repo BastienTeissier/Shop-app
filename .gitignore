@@ -5,3 +5,10 @@ dist/
 demo-shop/
 tmp/
 todo.md
+
+.agents/
+.claude/
+.codex/
+.gemini/
+products.json
+shop.db

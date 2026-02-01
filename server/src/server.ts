@@ -1,6 +1,15 @@
 import { McpServer } from "skybridge/server";
-import { z } from "zod";
-import { listProducts } from "./db.js";
+import {
+	cartHandler,
+	cartOptions,
+	cartSummaryHandler,
+	cartSummaryOptions,
+	cartSummaryToolOptions,
+	cartToolOptions,
+	ecomCarouselHandler,
+	ecomCarouselOptions,
+	ecomCarouselToolOptions,
+} from "./tools/index.js";
 
 const server = new McpServer(
 	{
@@ -8,34 +17,20 @@ const server = new McpServer(
 		version: "0.0.1",
 	},
 	{ capabilities: {} },
-).registerWidget(
-	"ecom-carousel",
-	{
-		description: "E-commerce Product Carousel",
-	},
-	{
-		description: "Display a carousel of products from the store.",
-		inputSchema: {
-			query: z.string().describe("Search query for products"),
-		},
-	},
-	async ({ query }) => {
-		try {
-			const filtered = await listProducts(query);
-
-			return {
-				structuredContent: { products: filtered },
-				content: [{ type: "text", text: JSON.stringify(filtered) }],
-				isError: false,
-			};
-		} catch (error) {
-			return {
-				content: [{ type: "text", text: `Error: ${error}` }],
-				isError: true,
-			};
-		}
-	},
-);
+)
+	.registerWidget(
+		"ecom-carousel",
+		ecomCarouselOptions,
+		ecomCarouselToolOptions,
+		ecomCarouselHandler,
+	)
+	.registerWidget("cart", cartOptions, cartToolOptions, cartHandler)
+	.registerWidget(
+		"cart-summary",
+		cartSummaryOptions,
+		cartSummaryToolOptions,
+		cartSummaryHandler,
+	);
 
 export default server;
 export type AppType = typeof server;

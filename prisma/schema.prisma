@@ -14,5 +14,32 @@ model Product {
   imageUrl    String @map("image_url")
   price       Int
 
+  cartItems CartItem[]
+
   @@map("products")
+}
+
+model Cart {
+  id        Int      @id @default(autoincrement())
+  sessionId String   @unique @map("session_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  items CartItem[]
+
+  @@map("carts")
+}
+
+model CartItem {
+  id            Int   @id @default(autoincrement())
+  cartId        Int   @map("cart_id")
+  productId     Int   @map("product_id")
+  quantity      Int   @default(1)
+  priceSnapshot Int   @map("price_snapshot")
+
+  cart    Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@index([cartId])
+  @@index([productId])
+  @@map("cart_items")
 }

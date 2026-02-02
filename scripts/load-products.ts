@@ -8,6 +8,7 @@ type ProductInput = {
 	description: string;
 	image: string;
 	price: number;
+	category?: string;
 };
 
 const __filename = fileURLToPath(import.meta.url);
@@ -56,7 +57,12 @@ function normalizeProduct(raw: unknown, index: number): ProductInput | null {
 		return null;
 	}
 
-	return { title, description, image, price };
+	const category =
+		typeof candidate.category === "string"
+			? candidate.category.trim() || undefined
+			: undefined;
+
+	return { title, description, image, price, category };
 }
 
 async function main(): Promise<void> {
@@ -114,6 +120,7 @@ async function main(): Promise<void> {
 				description: product.description,
 				imageUrl: product.image,
 				price: product.price,
+				category: product.category,
 			})),
 		});
 

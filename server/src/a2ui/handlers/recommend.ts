@@ -1,9 +1,48 @@
 import { runRecommendationAgent } from "../../agent/index.js";
+import type { RecommendationResult } from "../../agent/recommendation-agent.js";
 import {
 	broadcastDataModelUpdate,
 	getLastRecommendation,
 	setLastRecommendation,
 } from "../session.js";
+
+/**
+ * Apply sub-category diversity filter to products.
+ * Ensures max 1 product per sub-category globally across all tiers.
+ */
+function applyDiversityFilter(
+	products: RecommendationResult["products"],
+): RecommendationResult["products"] {
+	const seen = new Set<string>();
+	const filtered: RecommendationResult["products"] = [];
+	let productsWithoutSubCategory = 0;
+
+	for (const product of products) {
+		if (!product.subCategory) {
+			filtered.push(product);
+			productsWithoutSubCategory++;
+			continue;
+		}
+
+		if (!seen.has(product.subCategory)) {
+			seen.add(product.subCategory);
+			filtered.push(product);
+		} else {
+			console.info(
+				`Filtered duplicate sub-category "${product.subCategory}" - Product ID: ${product.id}`,
+			);
+		}
+	}
+
+	// Log if all products lack sub-categories (fallback scenario)
+	if (productsWithoutSubCategory === products.length && products.length > 0) {
+		console.info(
+			"Sub-category inference failed, showing all products without diversity filtering",
+		);
+	}
+
+	return filtered;
+}
 
 /**
  * Handle recommendation action - uses LLM agent to find and rank products.
@@ -26,14 +65,23 @@ export async function handleRecommend(
 		// Run the recommendation agent (batch - waits for completion)
 		const result = await runRecommendationAgent(query);
 
-		// Broadcast products with highlights and reasonWhy
-		broadcastDataModelUpdate(sessionId, "/products", result.products);
+		// Apply diversity filter
+		console.info(
+			`Diversity filter: ${result.products.length} products before filtering`,
+		);
+		const filteredProducts = applyDiversityFilter(result.products);
+		console.info(
+			`Diversity filter: ${result.products.length} → ${filteredProducts.length} products`,
+		);
+
+		// Broadcast filtered products with highlights and reasonWhy
+		broadcastDataModelUpdate(sessionId, "/products", filteredProducts);
 
 		// Store last recommendation for refinement
-		if (result.products.length > 0) {
+		if (filteredProducts.length > 0) {
 			setLastRecommendation(sessionId, {
 				query,
-				products: result.products,
+				products: filteredProducts,
 			});
 		}
 
@@ -41,7 +89,7 @@ export async function handleRecommend(
 		broadcastDataModelUpdate(sessionId, "/status", {
 			phase: "completed",
 			message:
-				result.products.length > 0
+				filteredProducts.length > 0
 					? result.summary
 					: "No recommendations found",
 		});
@@ -84,14 +132,23 @@ export async function handleRefine(
 			previousProducts: lastRecommendation.products,
 		});
 
+		// Apply diversity filter
+		console.info(
+			`Diversity filter: ${result.products.length} products before filtering`,
+		);
+		const filteredProducts = applyDiversityFilter(result.products);
+		console.info(
+			`Diversity filter: ${result.products.length} → ${filteredProducts.length} products`,
+		);
+
 		// Broadcast refined products
-		broadcastDataModelUpdate(sessionId, "/products", result.products);
+		broadcastDataModelUpdate(sessionId, "/products", filteredProducts);
 
 		// Update last recommendation with refined results
-		if (result.products.length > 0) {
+		if (filteredProducts.length > 0) {
 			setLastRecommendation(sessionId, {
 				query: refinementQuery,
-				products: result.products,
+				products: filteredProducts,
 			});
 		}
 
@@ -99,7 +156,7 @@ export async function handleRefine(
 		broadcastDataModelUpdate(sessionId, "/status", {
 			phase: "completed",
 			message:
-				result.products.length > 0
+				filteredProducts.length > 0
 					? result.summary
 					: "No matching products after refinement",
 		});

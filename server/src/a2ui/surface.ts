@@ -17,23 +17,6 @@ export function getRecommendationSurface(): A2UIComponent[] {
 			id: "root",
 			className: "recommendations-container",
 			children: [
-				// Header with search input
-				{
-					type: "row",
-					id: "header",
-					className: "recommendations-header",
-					children: [
-						{
-							type: "input",
-							id: "search-input",
-							placeholder: "Search for products...",
-							action: "search",
-							binding: "/ui/query",
-							className: "search-input",
-						},
-					],
-				},
-
 				// Status banner
 				{
 					type: "text",

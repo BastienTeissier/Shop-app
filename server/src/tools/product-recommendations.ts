@@ -7,7 +7,10 @@ export const productRecommendationsOptions = {
 		ui: {
 			csp: {
 				resourceDomains: ["https://fakestoreapi.com"],
-				connectDomains: ["http://localhost:3000", "https://5ccf-46-193-107-8.ngrok-free.app"], // Allow SSE connection to same origin and localhost
+				connectDomains: [
+					"http://localhost:3000",
+					"https://5ccf-46-193-107-8.ngrok-free.app",
+				], // Allow SSE connection to same origin and localhost
 			},
 		},
 	},

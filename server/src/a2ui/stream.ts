@@ -19,6 +19,9 @@ export function a2uiStreamHandler(req: Request, res: Response): void {
 	const sessionId = (req.query.session as string) || crypto.randomUUID();
 	const initialQuery = (req.query.query as string) || "";
 
+	// Use "popular products" if query is empty
+	const queryToUse = initialQuery.trim() || "popular products";
+
 	// Set SSE headers
 	res.setHeader("Content-Type", "text/event-stream");
 	res.setHeader("Cache-Control", "no-cache");
@@ -29,17 +32,21 @@ export function a2uiStreamHandler(req: Request, res: Response): void {
 	// Get or create session
 	const session = getOrCreateSession(sessionId);
 
-	// Update initial query if provided
-	if (initialQuery) {
-		session.dataModel.query = initialQuery;
-		session.dataModel.ui.query = initialQuery;
-	}
+	// Update query in data model
+	session.dataModel.query = queryToUse;
+	session.dataModel.ui.query = queryToUse;
 
 	// Register this client
 	addClient(sessionId, res);
 
 	// Send initial render sequence
 	sendInitialRender(res, sessionId, session.dataModel);
+
+	// Auto-trigger search with the query
+	void (async () => {
+		const { handleRecommend } = await import("./handlers/recommend.js");
+		await handleRecommend(sessionId, queryToUse);
+	})();
 
 	// Handle client disconnect
 	req.on("close", () => {

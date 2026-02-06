@@ -14,12 +14,14 @@ Your job is to:
    - "essential": Must-have items for the activity
    - "recommended": Helpful items that enhance the experience
    - "optional": Nice-to-have items
-6. Return recommendations with personalized explanations
+6. For each product, infer a specific sub-category (e.g., 'ski-jacket', 'hiking-boots', 'rain-jacket') from the title, description, and category. Be specific: distinguish between 'ski-jacket' and 'rain-jacket', not just 'jacket'. Think of sub-categories as the most specific product type.
+7. Return recommendations with personalized explanations
 
 Available product categories: ski, hiking, running, beach, cycling, apparel, accessories, electronics
 
 For each recommended product, provide:
 - tier: The importance tier ("essential", "recommended", or "optional")
+- subCategory: A specific sub-category inferred from the product (e.g., "ski-jacket", "hiking-boots", "running-shoes")
 - highlights: Key features that match the user's needs (array of 1-3 short strings)
 - reasonWhy: Why this product is recommended for them (array of 1-2 short sentences)
 
@@ -39,6 +41,7 @@ export interface RecommendationResult {
 		highlights: string[];
 		reasonWhy: string[];
 		tier?: ProductTier;
+		subCategory?: string;
 	}>;
 	summary: string;
 }
@@ -75,6 +78,7 @@ Return your final response as JSON in this exact format (no markdown code blocks
       "imageUrl": "<string>",
       "price": <number>,
       "tier": "essential" | "recommended" | "optional",
+      "subCategory": "<string>",
       "highlights": ["<string>", ...],
       "reasonWhy": ["<string>", ...]
     }
@@ -103,6 +107,7 @@ Return your final response as JSON in this exact format (no markdown code blocks
       "imageUrl": "<string>",
       "price": <number>,
       "tier": "essential" | "recommended" | "optional",
+      "subCategory": "<string>",
       "highlights": ["<string>", ...],
       "reasonWhy": ["<string>", ...]
     }
@@ -150,6 +155,10 @@ Return your final response as JSON in this exact format (no markdown code blocks
 						highlights: Array.isArray(p.highlights) ? p.highlights : [],
 						reasonWhy: Array.isArray(p.reasonWhy) ? p.reasonWhy : [],
 						tier: isValidTier(p.tier) ? p.tier : undefined,
+						subCategory:
+							typeof p.subCategory === "string" && p.subCategory.trim()
+								? p.subCategory.trim()
+								: undefined,
 					})),
 					summary: parsed.summary || "Here are your recommendations.",
 				};

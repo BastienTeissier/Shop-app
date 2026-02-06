@@ -469,4 +469,346 @@ describe("Recommendation Agent Integration", () => {
 			sseCtx.triggerClose();
 		});
 	});
+
+	describe("test_agent_returns_subcategory_per_product", () => {
+		it("Agent returns products with subCategory field", async () => {
+			const sessionId = crypto.randomUUID();
+
+			// Mock agent response with subCategory
+			mockRunRecommendationAgent.mockResolvedValue({
+				products: [
+					{
+						id: testProductId,
+						title: "Running Shoes Pro",
+						description: "Professional running shoes",
+						imageUrl: "https://example.com/shoes.png",
+						price: 9999,
+						highlights: ["Lightweight"],
+						reasonWhy: ["Great for running"],
+						subCategory: "running-shoes",
+					},
+				],
+				summary: "Found running gear for you!",
+			});
+
+			// Connect SSE client
+			const sseCtx = createSSEMockContext({ session: sessionId });
+			a2uiStreamHandler(
+				sseCtx.req as unknown as Request,
+				sseCtx.res as unknown as Response,
+			);
+
+			const initialMessageCount = sseCtx.messages.length;
+
+			// POST search action
+			const eventCtx = createEventMockContext({
+				sessionId,
+				action: "search",
+				payload: { query: "running gear" },
+			});
+
+			await a2uiEventHandler(
+				eventCtx.req as unknown as Request,
+				eventCtx.res as unknown as Response,
+			);
+
+			// Verify products have subCategory
+			const newMessages = sseCtx.messages.slice(initialMessageCount);
+			const productsUpdate = newMessages.find(
+				(msg) => isDataModelUpdate(msg) && msg.path === "/products",
+			) as DataModelUpdateMessage | undefined;
+
+			expect(productsUpdate).toBeDefined();
+			const products = productsUpdate?.value as Array<{
+				id: number;
+				subCategory?: string;
+			}>;
+
+			expect(products.length).toBe(1);
+			expect(products[0].subCategory).toBe("running-shoes");
+
+			sseCtx.triggerClose();
+		});
+	});
+
+	describe("test_empty_query_triggers_popular_products", () => {
+		it("Empty query automatically searches for popular products", async () => {
+			// Mock agent response
+			mockRunRecommendationAgent.mockResolvedValue({
+				products: [
+					{
+						id: testProductId,
+						title: "Popular Running Shoes",
+						description: "Best seller",
+						imageUrl: "https://example.com/shoes.png",
+						price: 9999,
+						highlights: ["Popular"],
+						reasonWhy: ["Best seller"],
+						subCategory: "running-shoes",
+					},
+				],
+				summary: "Here are popular products!",
+			});
+
+			// Connect SSE client with empty query
+			const sseCtx = createSSEMockContext({ session: crypto.randomUUID() });
+			a2uiStreamHandler(
+				sseCtx.req as unknown as Request,
+				sseCtx.res as unknown as Response,
+			);
+
+			// Wait a bit for auto-trigger to execute
+			await new Promise((resolve) => setTimeout(resolve, 100));
+
+			// Verify agent was called with "popular products"
+			expect(mockRunRecommendationAgent).toHaveBeenCalledWith(
+				"popular products",
+			);
+
+			sseCtx.triggerClose();
+		});
+	});
+
+	describe("test_recommendations_with_diversity_applied", () => {
+		it("Diversity filter removes duplicate sub-categories", async () => {
+			const sessionId = crypto.randomUUID();
+
+			// Mock agent response with duplicate sub-categories
+			mockRunRecommendationAgent.mockResolvedValue({
+				products: [
+					{
+						id: 1,
+						title: "Hiking Boots Pro",
+						description: "Pro boots",
+						imageUrl: "https://example.com/boots1.png",
+						price: 15000,
+						highlights: ["Waterproof"],
+						reasonWhy: ["Best for trails"],
+						tier: "essential" as const,
+						subCategory: "hiking-boots",
+					},
+					{
+						id: 2,
+						title: "Hiking Poles",
+						description: "Trekking poles",
+						imageUrl: "https://example.com/poles.png",
+						price: 5000,
+						highlights: ["Lightweight"],
+						reasonWhy: ["Stability"],
+						tier: "recommended" as const,
+						subCategory: "trekking-poles",
+					},
+					{
+						id: 3,
+						title: "Hiking Boots Budget",
+						description: "Budget boots",
+						imageUrl: "https://example.com/boots2.png",
+						price: 8000,
+						highlights: ["Affordable"],
+						reasonWhy: ["Good value"],
+						tier: "recommended" as const,
+						subCategory: "hiking-boots", // Duplicate!
+					},
+				],
+				summary: "Found hiking gear!",
+			});
+
+			// Connect SSE client
+			const sseCtx = createSSEMockContext({ session: sessionId });
+			a2uiStreamHandler(
+				sseCtx.req as unknown as Request,
+				sseCtx.res as unknown as Response,
+			);
+
+			const initialMessageCount = sseCtx.messages.length;
+
+			// POST search action
+			const eventCtx = createEventMockContext({
+				sessionId,
+				action: "search",
+				payload: { query: "hiking gear" },
+			});
+
+			await a2uiEventHandler(
+				eventCtx.req as unknown as Request,
+				eventCtx.res as unknown as Response,
+			);
+
+			// Verify only first hiking-boots kept
+			const newMessages = sseCtx.messages.slice(initialMessageCount);
+			const productsUpdate = newMessages.find(
+				(msg) => isDataModelUpdate(msg) && msg.path === "/products",
+			) as DataModelUpdateMessage | undefined;
+
+			expect(productsUpdate).toBeDefined();
+			const products = productsUpdate?.value as Array<{
+				id: number;
+				subCategory: string;
+			}>;
+
+			// Should have 2 products (boots1 and poles), not 3
+			expect(products.length).toBe(2);
+			expect(products.map((p) => p.id)).toEqual([1, 2]);
+
+			sseCtx.triggerClose();
+		});
+	});
+
+	describe("test_shows_fewer_products_when_all_same_subcategory", () => {
+		it("Shows only one product when all have same sub-category", async () => {
+			const sessionId = crypto.randomUUID();
+
+			// Mock agent response with all same sub-category
+			mockRunRecommendationAgent.mockResolvedValue({
+				products: [
+					{
+						id: 1,
+						title: "Running Shoes Pro",
+						description: "Pro shoes",
+						imageUrl: "https://example.com/shoes1.png",
+						price: 15000,
+						highlights: ["Premium"],
+						reasonWhy: ["Best quality"],
+						subCategory: "running-shoes",
+					},
+					{
+						id: 2,
+						title: "Running Shoes Budget",
+						description: "Budget shoes",
+						imageUrl: "https://example.com/shoes2.png",
+						price: 8000,
+						highlights: ["Affordable"],
+						reasonWhy: ["Good value"],
+						subCategory: "running-shoes",
+					},
+					{
+						id: 3,
+						title: "Running Shoes Mid",
+						description: "Mid-range shoes",
+						imageUrl: "https://example.com/shoes3.png",
+						price: 10000,
+						highlights: ["Balanced"],
+						reasonWhy: ["Great compromise"],
+						subCategory: "running-shoes",
+					},
+				],
+				summary: "Found running shoes!",
+			});
+
+			// Connect SSE client
+			const sseCtx = createSSEMockContext({ session: sessionId });
+			a2uiStreamHandler(
+				sseCtx.req as unknown as Request,
+				sseCtx.res as unknown as Response,
+			);
+
+			const initialMessageCount = sseCtx.messages.length;
+
+			// POST search action
+			const eventCtx = createEventMockContext({
+				sessionId,
+				action: "search",
+				payload: { query: "running shoes" },
+			});
+
+			await a2uiEventHandler(
+				eventCtx.req as unknown as Request,
+				eventCtx.res as unknown as Response,
+			);
+
+			// Verify only 1 product returned
+			const newMessages = sseCtx.messages.slice(initialMessageCount);
+			const productsUpdate = newMessages.find(
+				(msg) => isDataModelUpdate(msg) && msg.path === "/products",
+			) as DataModelUpdateMessage | undefined;
+
+			expect(productsUpdate).toBeDefined();
+			const products = productsUpdate?.value as Array<{ id: number }>;
+
+			// Should have only 1 product
+			expect(products.length).toBe(1);
+			expect(products[0].id).toBe(1); // First one kept
+
+			sseCtx.triggerClose();
+		});
+	});
+
+	describe("test_fallback_when_ai_inference_fails", () => {
+		it("Shows all products when subCategory is missing (fallback)", async () => {
+			const sessionId = crypto.randomUUID();
+
+			// Mock agent response without subCategory fields
+			mockRunRecommendationAgent.mockResolvedValue({
+				products: [
+					{
+						id: 1,
+						title: "Product 1",
+						description: "Test",
+						imageUrl: "https://example.com/1.png",
+						price: 1000,
+						highlights: ["Feature"],
+						reasonWhy: ["Reason"],
+						// No subCategory
+					},
+					{
+						id: 2,
+						title: "Product 2",
+						description: "Test",
+						imageUrl: "https://example.com/2.png",
+						price: 2000,
+						highlights: ["Feature"],
+						reasonWhy: ["Reason"],
+						// No subCategory
+					},
+					{
+						id: 3,
+						title: "Product 3",
+						description: "Test",
+						imageUrl: "https://example.com/3.png",
+						price: 3000,
+						highlights: ["Feature"],
+						reasonWhy: ["Reason"],
+						// No subCategory
+					},
+				],
+				summary: "Found products!",
+			});
+
+			// Connect SSE client
+			const sseCtx = createSSEMockContext({ session: sessionId });
+			a2uiStreamHandler(
+				sseCtx.req as unknown as Request,
+				sseCtx.res as unknown as Response,
+			);
+
+			const initialMessageCount = sseCtx.messages.length;
+
+			// POST search action
+			const eventCtx = createEventMockContext({
+				sessionId,
+				action: "search",
+				payload: { query: "outdoor gear" },
+			});
+
+			await a2uiEventHandler(
+				eventCtx.req as unknown as Request,
+				eventCtx.res as unknown as Response,
+			);
+
+			// Verify all 3 products are shown (no filtering applied)
+			const newMessages = sseCtx.messages.slice(initialMessageCount);
+			const productsUpdate = newMessages.find(
+				(msg) => isDataModelUpdate(msg) && msg.path === "/products",
+			) as DataModelUpdateMessage | undefined;
+
+			expect(productsUpdate).toBeDefined();
+			const products = productsUpdate?.value as Array<{ id: number }>;
+
+			// All 3 products should be present (fallback behavior)
+			expect(products.length).toBe(3);
+			expect(products.map((p) => p.id)).toEqual([1, 2, 3]);
+
+			sseCtx.triggerClose();
+		});
+	});
 });

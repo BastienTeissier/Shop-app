@@ -177,6 +177,7 @@ export type RecommendationProduct = {
 	highlights: string[];
 	reasonWhy: string[];
 	tier?: ProductTier;
+	subCategory?: string;
 };
 
 export type RecommendationConstraints = {

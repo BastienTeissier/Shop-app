@@ -10,7 +10,7 @@ import {
  * Apply sub-category diversity filter to products.
  * Ensures max 1 product per sub-category globally across all tiers.
  */
-function applyDiversityFilter(
+export function applyDiversityFilter(
 	products: RecommendationResult["products"],
 ): RecommendationResult["products"] {
 	const seen = new Set<string>();

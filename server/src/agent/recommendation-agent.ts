@@ -31,7 +31,7 @@ If the user mentions a budget, convert it to cents (e.g., $100 = 10000 cents) fo
 /**
  * Result from the recommendation agent.
  */
-export interface RecommendationResult {
+export type RecommendationResult = {
 	products: Array<{
 		id: number;
 		title: string;
@@ -44,19 +44,19 @@ export interface RecommendationResult {
 		subCategory?: string;
 	}>;
 	summary: string;
-}
+};
 
 /**
  * Context for refining recommendations.
  */
-export interface RefinementContext {
+export type RefinementContext = {
 	previousQuery: string;
 	previousProducts: RecommendationResult["products"];
-}
+};
 
 /**
  * Run the recommendation agent with the given user query.
- * Uses Gemini to understand the query, search products, and generate explanations.
+ * Uses the LLM to understand the query, search products, and generate explanations.
  */
 export async function runRecommendationAgent(
 	query: string,

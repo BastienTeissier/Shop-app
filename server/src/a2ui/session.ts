@@ -4,7 +4,10 @@ import type {
 	LastRecommendation,
 	RecommendationDataModel,
 } from "@shared/a2ui-types.js";
+import { createInitialDataModel } from "../../../shared/a2ui-types.js";
 import type { Response } from "express";
+
+export { createInitialDataModel };
 
 // =============================================================================
 // Session Store
@@ -16,30 +19,6 @@ type SessionEntry = {
 };
 
 const sessions = new Map<string, SessionEntry>();
-
-// =============================================================================
-// Data Model Factory
-// =============================================================================
-
-export function createInitialDataModel(): RecommendationDataModel {
-	return {
-		query: "",
-		constraints: {},
-		products: [],
-		status: {
-			phase: "idle",
-			message: "Ready to search",
-		},
-		ui: {
-			query: "",
-		},
-		cart: {
-			items: [],
-			totalQuantity: 0,
-			totalPrice: 0,
-		},
-	};
-}
 
 // =============================================================================
 // Session Management

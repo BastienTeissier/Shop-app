@@ -223,6 +223,21 @@ export type RecommendationDataModel = {
 };
 
 // =============================================================================
+// Data Model Factory
+// =============================================================================
+
+export function createInitialDataModel(): RecommendationDataModel {
+	return {
+		query: "",
+		constraints: {},
+		products: [],
+		status: { phase: "idle", message: "Ready to search" },
+		ui: { query: "" },
+		cart: { items: [], totalQuantity: 0, totalPrice: 0 },
+	};
+}
+
+// =============================================================================
 // Session Types
 // =============================================================================
 

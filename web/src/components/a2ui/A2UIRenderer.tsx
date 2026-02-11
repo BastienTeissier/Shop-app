@@ -3,6 +3,7 @@ import type {
 	A2UIMessage,
 	RecommendationDataModel,
 } from "@shared/a2ui-types.js";
+import { createInitialDataModel } from "@shared/a2ui-types.js";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { renderComponent } from "./registry.js";
 import type { A2UIRendererContext } from "./types.js";
@@ -18,30 +19,6 @@ type A2UIRendererProps = {
 	eventEndpoint?: string;
 	theme?: "light" | "dark";
 };
-
-// =============================================================================
-// Initial State
-// =============================================================================
-
-function createInitialDataModel(): RecommendationDataModel {
-	return {
-		query: "",
-		constraints: {},
-		products: [],
-		status: {
-			phase: "idle",
-			message: "Connecting...",
-		},
-		ui: {
-			query: "",
-		},
-		cart: {
-			items: [],
-			totalQuantity: 0,
-			totalPrice: 0,
-		},
-	};
-}
 
 // =============================================================================
 // Component

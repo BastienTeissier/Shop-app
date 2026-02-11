@@ -1,16 +1,15 @@
+import type { Product } from "@shared/types.js";
 import { tool } from "ai";
 import { z } from "zod";
 
-// Define the product schema for type safety
 const productSchema = z.object({
 	id: z.number(),
 	title: z.string(),
 	description: z.string(),
 	price: z.number().describe("Price in cents"),
-	imageUrl: z.string().optional(),
+	imageUrl: z.string(),
+	category: z.string().nullable().optional(),
 });
-
-type Product = z.infer<typeof productSchema>;
 
 /**
  * Agent tool for ranking and filtering products based on user preferences.

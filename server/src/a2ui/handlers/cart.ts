@@ -2,7 +2,6 @@ import {
 	cartAddItem,
 	cartCreate,
 	cartGetBySessionId,
-	cartGetSnapshot,
 } from "../../db/cart.js";
 import {
 	broadcastDataModelUpdate,
@@ -36,38 +35,16 @@ export async function handleAddToCart(
 		await cartCreate(cartSessionId);
 	}
 
-	// Get cart
+	// Get cart (guaranteed to exist after cartCreate above)
 	const cart = await cartGetBySessionId(cartSessionId);
 	if (!cart) {
-		// Cart was not created, create it now
-		await cartCreate(cartSessionId);
-		const newCart = await cartGetBySessionId(cartSessionId);
-		if (!newCart) {
-			throw new Error("Failed to create cart");
-		}
-		await cartAddItem(newCart.id, productId);
-		const snapshot = await cartGetSnapshot(newCart.id);
-		broadcastCartUpdate(sessionId, snapshot);
-		return;
+		throw new Error("Failed to create cart");
 	}
 
-	// Add item to cart
-	await cartAddItem(cart.id, productId);
-
-	// Get updated cart snapshot
-	const snapshot = await cartGetSnapshot(cart.id);
+	// Add item and get updated snapshot
+	const snapshot = await cartAddItem(cart.id, productId);
 
 	// Broadcast cart update
-	broadcastCartUpdate(sessionId, snapshot);
-}
-
-/**
- * Broadcast cart state update.
- */
-function broadcastCartUpdate(
-	sessionId: string,
-	snapshot: { items: unknown[]; totalQuantity: number; totalPrice: number },
-): void {
 	broadcastDataModelUpdate(sessionId, "/cart", {
 		items: snapshot.items,
 		totalQuantity: snapshot.totalQuantity,

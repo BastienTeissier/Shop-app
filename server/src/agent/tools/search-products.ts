@@ -42,16 +42,16 @@ export const searchProductsTool = tool({
 
 		if (categories && categories.length > 0) {
 			products = await productListByCategories(categories, limit);
-			console.log(
+			console.info(
 				`searchProductsTool: found ${products.length} products for categories [${categories.join(", ")}]`,
 			);
 		} else if (query) {
 			products = await productList(query, limit);
-			console.log(
+			console.info(
 				`searchProductsTool: found ${products.length} products for query "${query}"`,
 			);
 		} else {
-			console.log("searchProductsTool: no query or categories provided");
+			console.info("searchProductsTool: no query or categories provided");
 			return [];
 		}
 

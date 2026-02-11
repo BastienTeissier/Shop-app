@@ -1,108 +1,11 @@
-import type {
-	A2UIMessage,
-	DataModelUpdateMessage,
-	RecommendationDataModel,
-	SurfaceUpdateMessage,
-} from "@shared/a2ui-types.js";
+import type { RecommendationDataModel } from "@shared/a2ui-types.js";
 import type { Request, Response } from "express";
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import {
-	afterEach,
-	beforeAll,
-	describe,
-	expect,
-	it,
-	type Mock,
-	vi,
-} from "vitest";
-
-// =============================================================================
-// Mock Types
-// =============================================================================
-
-interface MockResponse {
-	setHeader: Mock<[name: string, value: string], MockResponse>;
-	flushHeaders: Mock<[], void>;
-	write: Mock<[data: string], boolean>;
-	on: Mock<[event: string, handler: () => void], MockResponse>;
-	end: Mock<[], MockResponse>;
-}
-
-interface MockRequest {
-	query: Record<string, string>;
-	on: Mock<[event: string, handler: () => void], MockRequest>;
-}
-
-interface MockContext {
-	req: MockRequest;
-	res: MockResponse;
-	messages: A2UIMessage[];
-	closeHandlers: (() => void)[];
-	triggerClose: () => void;
-}
-
-// =============================================================================
-// Mock Factories
-// =============================================================================
-
-function createMockContext(query: Record<string, string> = {}): MockContext {
-	const messages: A2UIMessage[] = [];
-	const closeHandlers: (() => void)[] = [];
-
-	const res: MockResponse = {
-		setHeader: vi.fn().mockReturnThis(),
-		flushHeaders: vi.fn(),
-		write: vi.fn((data: string) => {
-			// Parse SSE data format: "data: {...}\n\n"
-			if (data.startsWith("data: ")) {
-				const jsonStr = data.slice(6).trim();
-				if (jsonStr) {
-					try {
-						messages.push(JSON.parse(jsonStr) as A2UIMessage);
-					} catch {
-						// Ignore parse errors (e.g., keepalive comments)
-					}
-				}
-			}
-			return true;
-		}),
-		on: vi.fn().mockReturnThis(),
-		end: vi.fn().mockReturnThis(),
-	};
-
-	const req: MockRequest = {
-		query,
-		on: vi.fn((event: string, handler: () => void) => {
-			if (event === "close") {
-				closeHandlers.push(handler);
-			}
-			return req;
-		}),
-	};
-
-	return {
-		req,
-		res,
-		messages,
-		closeHandlers,
-		triggerClose: () => {
-			for (const handler of closeHandlers) {
-				handler();
-			}
-		},
-	};
-}
-
-// =============================================================================
-// Type Guards
-// =============================================================================
-
-function isSurfaceUpdate(msg: A2UIMessage): msg is SurfaceUpdateMessage {
-	return msg.type === "surfaceUpdate";
-}
-
-function isDataModelUpdate(msg: A2UIMessage): msg is DataModelUpdateMessage {
-	return msg.type === "dataModelUpdate";
-}
+	createSSEMockContext,
+	isDataModelUpdate,
+	isSurfaceUpdate,
+} from "./helpers/a2ui-mocks.js";
 
 // =============================================================================
 // Tests
@@ -135,7 +38,7 @@ describe("A2UI Stream Integration", () => {
 	describe("test_sse_connection_sends_initial_render", () => {
 		it("connects to /api/a2ui/stream and receives initial render sequence", () => {
 			const sessionId = crypto.randomUUID();
-			const ctx = createMockContext({ session: sessionId });
+			const ctx = createSSEMockContext({ session: sessionId });
 
 			a2uiStreamHandler(
 				ctx.req as unknown as Request,
@@ -194,7 +97,7 @@ describe("A2UI Stream Integration", () => {
 		it("passes initial query through to data model", () => {
 			const sessionId = crypto.randomUUID();
 			const initialQuery = "running shoes";
-			const ctx = createMockContext({
+			const ctx = createSSEMockContext({
 				session: sessionId,
 				query: initialQuery,
 			});
@@ -222,8 +125,8 @@ describe("A2UI Stream Integration", () => {
 			const sessionId1 = crypto.randomUUID();
 			const sessionId2 = crypto.randomUUID();
 
-			const ctx1 = createMockContext({ session: sessionId1 });
-			const ctx2 = createMockContext({ session: sessionId2 });
+			const ctx1 = createSSEMockContext({ session: sessionId1 });
+			const ctx2 = createSSEMockContext({ session: sessionId2 });
 
 			a2uiStreamHandler(
 				ctx1.req as unknown as Request,
@@ -262,8 +165,8 @@ describe("A2UI Stream Integration", () => {
 		it("multiple clients on same session share state", () => {
 			const sessionId = crypto.randomUUID();
 
-			const ctx1 = createMockContext({ session: sessionId });
-			const ctx2 = createMockContext({ session: sessionId });
+			const ctx1 = createSSEMockContext({ session: sessionId });
+			const ctx2 = createSSEMockContext({ session: sessionId });
 
 			a2uiStreamHandler(
 				ctx1.req as unknown as Request,
@@ -290,7 +193,7 @@ describe("A2UI Stream Integration", () => {
 	describe("test_client_disconnect_cleanup", () => {
 		it("cleans up session when last client disconnects", () => {
 			const sessionId = crypto.randomUUID();
-			const ctx = createMockContext({ session: sessionId });
+			const ctx = createSSEMockContext({ session: sessionId });
 
 			a2uiStreamHandler(
 				ctx.req as unknown as Request,
@@ -312,8 +215,8 @@ describe("A2UI Stream Integration", () => {
 		it("keeps session alive when other clients remain", () => {
 			const sessionId = crypto.randomUUID();
 
-			const ctx1 = createMockContext({ session: sessionId });
-			const ctx2 = createMockContext({ session: sessionId });
+			const ctx1 = createSSEMockContext({ session: sessionId });
+			const ctx2 = createSSEMockContext({ session: sessionId });
 
 			a2uiStreamHandler(
 				ctx1.req as unknown as Request,

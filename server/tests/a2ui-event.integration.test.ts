@@ -394,7 +394,7 @@ describe("A2UI Event Integration", () => {
 
 			expect(eventCtx.statusCode()).toBe(400);
 			expect(eventCtx.responseBody()).toEqual({
-				error: "Missing sessionId or action",
+				error: "Invalid request body",
 			});
 		});
 
@@ -412,7 +412,7 @@ describe("A2UI Event Integration", () => {
 
 			expect(eventCtx.statusCode()).toBe(400);
 			expect(eventCtx.responseBody()).toEqual({
-				error: "Missing sessionId or action",
+				error: "Invalid request body",
 			});
 		});
 	});

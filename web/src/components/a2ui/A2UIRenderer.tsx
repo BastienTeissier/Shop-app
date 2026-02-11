@@ -50,8 +50,8 @@ function createInitialDataModel(): RecommendationDataModel {
 export function A2UIRenderer({
 	sessionId,
 	initialQuery = "",
-	streamEndpoint = "http://localhost:3000/api/a2ui/stream",
-	eventEndpoint = "http://localhost:3000/api/a2ui/event",
+	streamEndpoint = "/api/a2ui/stream",
+	eventEndpoint = "/api/a2ui/event",
 	theme = "light",
 }: A2UIRendererProps) {
 	const [surface, setSurface] = useState<A2UIComponent[]>([]);

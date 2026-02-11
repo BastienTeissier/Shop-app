@@ -82,6 +82,27 @@ export function getClients(sessionId: string): Set<Response> {
 }
 
 // =============================================================================
+// Session TTL Cleanup
+// =============================================================================
+
+const SESSION_TTL_MS = 60 * 60 * 1000; // 1 hour
+const CLEANUP_INTERVAL_MS = 10 * 60 * 1000; // 10 minutes
+
+function cleanupStaleSessions(): void {
+	const now = Date.now();
+	for (const [sessionId, entry] of sessions) {
+		if (entry.clients.size === 0) {
+			const age = now - entry.session.createdAt.getTime();
+			if (age > SESSION_TTL_MS) {
+				sessions.delete(sessionId);
+			}
+		}
+	}
+}
+
+setInterval(cleanupStaleSessions, CLEANUP_INTERVAL_MS).unref();
+
+// =============================================================================
 // Message Broadcasting
 // =============================================================================
 

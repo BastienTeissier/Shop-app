@@ -13,7 +13,7 @@ export function createOpenRouterProvider() {
 
 /**
  * Get the recommendation model via OpenRouter.
- * Using Gemini 2.0 Flash through OpenRouter for good price/performance.
+ * Using GPT-4o-mini through OpenRouter for good price/performance.
  */
 export function getRecommendationModel() {
 	const openrouter = createOpenRouterProvider();

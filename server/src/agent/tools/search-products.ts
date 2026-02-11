@@ -1,6 +1,6 @@
 import { tool } from "ai";
 import { z } from "zod";
-import type { Product } from "../../db/products.js";
+import type { Product } from "@shared/types.js";
 import { productList, productListByCategories } from "../../db/products.js";
 
 /**

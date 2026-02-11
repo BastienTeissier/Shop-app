@@ -1,8 +1,4 @@
-import {
-	cartAddItem,
-	cartCreate,
-	cartGetBySessionId,
-} from "../../db/cart.js";
+import { cartAddItem, cartCreate, cartGetBySessionId } from "../../db/cart.js";
 import {
 	broadcastDataModelUpdate,
 	getCartSessionId,

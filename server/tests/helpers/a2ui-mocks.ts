@@ -139,8 +139,6 @@ export function isDataModelUpdate(
 	return msg.type === "dataModelUpdate";
 }
 
-export function isSurfaceUpdate(
-	msg: A2UIMessage,
-): msg is SurfaceUpdateMessage {
+export function isSurfaceUpdate(msg: A2UIMessage): msg is SurfaceUpdateMessage {
 	return msg.type === "surfaceUpdate";
 }

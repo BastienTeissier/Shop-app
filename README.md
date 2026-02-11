@@ -68,26 +68,6 @@ ngrok http 3000
 
 - In ChatGPT, navigate to **Settings → Connectors → Create** and add the forwarding URL provided by ngrok suffixed with `/mcp` (e.g. `https://3785c5ddc4b6.ngrok-free.app/mcp`)
 
-### Create your first widget
-
-#### 1. Add a new widget
-
-- Register a widget in `server/server.ts` with a unique name (e.g., `my-widget`)
-- Create a matching React component at `web/src/widgets/my-widget.tsx`. The file name must match the widget name exactly
-
-#### 2. Edit widgets with Hot Module Replacement (HMR)
-
-Edit and save components in `web/src/widgets/` — changes appear instantly in the host
-
-#### 3. Edit server code
-
-Modify files in `server/` and reload your ChatGPT connector in **Settings → Connectors → [Your connector] → Reload**
-
-## Deploy to Production
-
-- Use [Alpic](https://alpic.ai/) to deploy your OpenAI App to production
-- In ChatGPT, navigate to **Settings → Connectors → Create** and add your MCP server URL (e.g., `https://your-app-name.alpic.live`)
-
 ## Path Aliases
 
 The project uses TypeScript path aliases for cleaner imports:

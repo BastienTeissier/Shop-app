@@ -4,8 +4,8 @@ import type {
 	LastRecommendation,
 	RecommendationDataModel,
 } from "@shared/a2ui-types.js";
-import { createInitialDataModel } from "../../../shared/a2ui-types.js";
 import type { Response } from "express";
+import { createInitialDataModel } from "../../../shared/a2ui-types.js";
 
 export { createInitialDataModel };
 

@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import {
 	addClient,
+	broadcastDataModelUpdate,
 	getOrCreateSession,
 	removeClient,
 	sendMessage,
@@ -40,17 +41,18 @@ export function a2uiStreamHandler(req: Request, res: Response): void {
 	addClient(sessionId, res);
 
 	// Send initial render sequence
-	sendInitialRender(res, sessionId, session.dataModel);
+	sendInitialRender(res, session.dataModel);
 
 	// Auto-trigger search with the query
 	void (async () => {
 		const { handleRecommend } = await import("./handlers/recommend.js");
 		await handleRecommend(sessionId, queryToUse);
-	})();
-
-	// Handle client disconnect
-	req.on("close", () => {
-		removeClient(sessionId, res);
+	})().catch((error) => {
+		console.error("Auto-search failed:", error);
+		broadcastDataModelUpdate(sessionId, "/status", {
+			phase: "error",
+			message: "Failed to load recommendations. Please try again.",
+		});
 	});
 
 	// Send keepalive every 30 seconds to prevent connection timeout
@@ -58,7 +60,9 @@ export function a2uiStreamHandler(req: Request, res: Response): void {
 		res.write(": keepalive\n\n");
 	}, 30000);
 
+	// Handle client disconnect
 	req.on("close", () => {
+		removeClient(sessionId, res);
 		clearInterval(keepalive);
 	});
 }
@@ -66,11 +70,7 @@ export function a2uiStreamHandler(req: Request, res: Response): void {
 /**
  * Sends the initial A2UI render sequence to a newly connected client.
  */
-function sendInitialRender(
-	client: Response,
-	_sessionId: string,
-	dataModel: unknown,
-): void {
+function sendInitialRender(client: Response, dataModel: unknown): void {
 	// 1. Begin rendering
 	sendMessage(client, { type: "beginRendering" });
 

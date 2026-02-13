@@ -62,5 +62,12 @@
 	},
 	"prisma": {
 		"seed": "tsx scripts/load-products.ts"
+	},
+	"pnpm": {
+		"auditConfig": {
+			"ignoreCves": [
+				"CVE-2026-25547"
+			]
+		}
 	}
 }

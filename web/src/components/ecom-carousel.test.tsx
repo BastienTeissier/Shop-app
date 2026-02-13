@@ -129,6 +129,7 @@ describe("EcomCarousel", () => {
 	});
 
 	it("renders checkout summary and opens the checkout URL", async () => {
+		const testSessionId = "123e4567-e89b-12d3-a456-426614174000";
 		const products = [
 			makeProduct({ id: 1, title: "Road Bike", price: 1999 }),
 			makeProduct({
@@ -148,6 +149,7 @@ describe("EcomCarousel", () => {
 				totalQuantity: 2,
 				totalPrice: 4499,
 			},
+			sessionId: testSessionId,
 		};
 
 		renderCarousel({ products });
@@ -160,8 +162,24 @@ describe("EcomCarousel", () => {
 		await user.click(screen.getByRole("button", { name: "Checkout" }));
 
 		expect(mocks.openExternal).toHaveBeenCalledWith(
-			"https://alpic.ai/?cart=1%2C2",
+			`http://localhost:4000/cart?session=${testSessionId}`,
 		);
+	});
+
+	it("disables checkout button when sessionId is undefined", () => {
+		const products = [makeProduct({ id: 1, title: "Road Bike", price: 1999 })];
+		mocks.requestModal = { open: vi.fn(), isOpen: true };
+		mocks.widgetState = {
+			snapshot: {
+				items: [{ productId: 1, quantity: 1, priceSnapshot: 1999 }],
+				totalQuantity: 1,
+				totalPrice: 1999,
+			},
+		};
+
+		renderCarousel({ products });
+
+		expect(screen.getByRole("button", { name: "Checkout" })).toBeDisabled();
 	});
 
 	it("uses locale translations for labels", () => {

@@ -104,7 +104,7 @@ export async function cartGetSummary(sessionId: string): Promise<CartSummary> {
 	});
 
 	if (!cart) {
-		return { items: [], subtotal: 0 };
+		return { items: [], subtotal: 0, notFound: true };
 	}
 
 	const items: CartSummaryItem[] = cart.items.map((item) => ({
@@ -118,5 +118,5 @@ export async function cartGetSummary(sessionId: string): Promise<CartSummary> {
 
 	const subtotal = items.reduce((sum, item) => sum + item.lineTotal, 0);
 
-	return { items, subtotal };
+	return { items, subtotal, notFound: false };
 }

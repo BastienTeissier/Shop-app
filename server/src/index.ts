@@ -2,6 +2,7 @@ import express, { type Express } from "express";
 import { widgetsDevServer } from "skybridge/server";
 import type { ViteDevServer } from "vite";
 import { a2uiEventHandler, a2uiStreamHandler } from "./a2ui/index.js";
+import { cartSummaryApiHandler } from "./api/cart.js";
 import { mcp } from "./middleware.js";
 import server from "./server.js";
 
@@ -25,6 +26,9 @@ app.use((req, res, next) => {
 // A2UI endpoints for streaming recommendations
 app.get("/api/a2ui/stream", a2uiStreamHandler);
 app.post("/api/a2ui/event", a2uiEventHandler);
+
+// Cart REST endpoint for standalone storefront
+app.get("/api/cart/:sessionId/summary", cartSummaryApiHandler);
 
 app.use(mcp(server));
 

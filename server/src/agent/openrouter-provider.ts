@@ -1,3 +1,4 @@
+import type { LanguageModelV3 } from "@ai-sdk/provider";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import { createOllama } from "ollama-ai-provider-v2";
 
@@ -17,7 +18,7 @@ export function createOpenRouterProvider() {
  * When USE_LOCAL_MODEL=true, uses Devstral via local Ollama.
  * Otherwise, uses GPT-4o-mini through OpenRouter.
  */
-export function getRecommendationModel() {
+export function getRecommendationModel(): LanguageModelV3 {
 	if (process.env.USE_LOCAL_MODEL === "true") {
 		const ollama = createOllama({
 			baseURL: process.env.OLLAMA_BASE_URL ?? "http://localhost:11434/api",

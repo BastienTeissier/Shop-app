@@ -21,3 +21,9 @@ export {
 	ecomCarouselOptions,
 	ecomCarouselToolOptions,
 } from "./ecom-carousel.js";
+
+export {
+	productRecommendationsHandler,
+	productRecommendationsOptions,
+	productRecommendationsToolOptions,
+} from "./product-recommendations.js";

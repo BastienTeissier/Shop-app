@@ -22,7 +22,8 @@ An e-commerce carousel application built as a ChatGPT plugin. Users search for p
 ```
 sport-shop/
 ├── shared/
-│   └── types.ts              # Domain types (Product, CartSnapshot, etc.)
+│   ├── types.ts              # Domain types (Product, CartSnapshot, etc.)
+│   └── a2ui-types.ts         # A2UI protocol types + createInitialDataModel factory
 ├── server/
 │   ├── src/
 │   │   ├── index.ts          # Express app setup
@@ -33,18 +34,33 @@ sport-shop/
 │   │   │   ├── products.ts   # Product domain queries
 │   │   │   ├── cart.ts       # Cart domain queries
 │   │   │   └── index.ts      # Barrel re-exports
-│   │   └── tools/            # Widget handlers (business logic)
-│   │       ├── utils.ts      # Shared utilities
-│   │       ├── ecom-carousel.ts
-│   │       ├── cart.ts
-│   │       └── cart-summary.ts
+│   │   ├── tools/            # Widget handlers (business logic)
+│   │   │   ├── utils.ts      # Shared utilities
+│   │   │   ├── ecom-carousel.ts
+│   │   │   ├── cart.ts
+│   │   │   ├── cart-summary.ts
+│   │   │   └── product-recommendations.ts
+│   │   ├── a2ui/             # A2UI streaming protocol (SSE + event handlers)
+│   │   │   ├── event.ts      # POST endpoint for user actions
+│   │   │   ├── stream.ts     # SSE endpoint for real-time updates
+│   │   │   ├── session.ts    # In-memory session management
+│   │   │   ├── surface.ts    # UI component tree definition
+│   │   │   ├── handlers/     # Action handlers (cart, recommend)
+│   │   │   └── index.ts      # Barrel re-exports
+│   │   └── agent/            # LLM recommendation agent
+│   │       ├── recommendation-agent.ts  # Agent orchestration
+│   │       ├── openrouter-provider.ts   # LLM provider config
+│   │       ├── tools/        # Agent tools (search, rank)
+│   │       └── index.ts      # Barrel re-exports
 │   └── tests/
+│       ├── helpers/          # Shared test utilities
 │       └── *.integration.test.ts
 ├── web/
 │   ├── vite.config.ts
 │   └── src/
 │       ├── widgets/          # Widget entry points (mounted by Skybridge)
 │       ├── components/       # React components with logic
+│       │   └── a2ui/         # A2UI renderer and sub-components
 │       ├── helpers.ts        # Typed Skybridge hooks
 │       ├── index.css         # Global styles
 │       └── test/

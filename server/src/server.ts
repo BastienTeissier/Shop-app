@@ -9,6 +9,9 @@ import {
 	ecomCarouselHandler,
 	ecomCarouselOptions,
 	ecomCarouselToolOptions,
+	productRecommendationsHandler,
+	productRecommendationsOptions,
+	productRecommendationsToolOptions,
 } from "./tools/index.js";
 
 const server = new McpServer(
@@ -30,6 +33,12 @@ const server = new McpServer(
 		cartSummaryOptions,
 		cartSummaryToolOptions,
 		cartSummaryHandler,
+	)
+	.registerWidget(
+		"product-recommendations",
+		productRecommendationsOptions,
+		productRecommendationsToolOptions,
+		productRecommendationsHandler,
 	);
 
 export default server;

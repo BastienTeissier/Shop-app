@@ -28,3 +28,26 @@ export async function productList(
 
 	return products;
 }
+
+export async function productListByCategories(
+	categories: string[],
+	limit = 20,
+): Promise<Product[]> {
+	const safeLimit = Math.max(0, Math.floor(limit));
+
+	if (categories.length === 0 || safeLimit === 0) {
+		return [];
+	}
+
+	const products: PrismaProduct[] = await prisma.product.findMany({
+		where: {
+			OR: categories.map((cat) => ({
+				category: { contains: cat },
+			})),
+		},
+		orderBy: { id: "desc" },
+		take: safeLimit,
+	});
+
+	return products;
+}

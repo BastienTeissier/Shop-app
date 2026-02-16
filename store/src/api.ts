@@ -5,6 +5,11 @@ const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000";
 export async function fetchCartSummary(
 	sessionId: string,
 ): Promise<CartSummary> {
-	const res = await fetch(`${API_BASE}/api/cart/${sessionId}/summary`);
+	const res = await fetch(
+		`${API_BASE}/api/cart/${encodeURIComponent(sessionId)}/summary`,
+	);
+	if (!res.ok) {
+		throw new Error(`Failed to fetch cart summary (${res.status})`);
+	}
 	return res.json();
 }

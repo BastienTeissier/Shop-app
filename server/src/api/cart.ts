@@ -10,10 +10,14 @@ export async function cartSummaryApiHandler(
 
 	const validation = validateCartSession(sessionId);
 	if (!validation.valid) {
-		res.json({ items: [], subtotal: 0, notFound: true });
+		res.status(400).json({ items: [], subtotal: 0, notFound: true });
 		return;
 	}
 
-	const summary = await cartGetSummary(sessionId);
-	res.json(summary);
+	try {
+		const summary = await cartGetSummary(sessionId);
+		res.json(summary);
+	} catch {
+		res.status(500).json({ items: [], subtotal: 0, notFound: true });
+	}
 }

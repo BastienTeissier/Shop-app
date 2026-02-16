@@ -130,13 +130,14 @@ describe("GET /api/cart/:sessionId/summary", () => {
 		});
 	});
 
-	it("returns notFound for invalid (non-UUID) session ID", async () => {
+	it("returns 400 for invalid (non-UUID) session ID", async () => {
 		const ctx = createMockContext("not-a-uuid");
 		await cartSummaryApiHandler(
 			ctx.req as unknown as Request,
 			ctx.res as unknown as Response,
 		);
 
+		expect(ctx.statusCode()).toBe(400);
 		expect(ctx.responseBody()).toEqual({
 			items: [],
 			subtotal: 0,

@@ -9,7 +9,8 @@ type State =
 	| { status: "loading" }
 	| { status: "notFound" }
 	| { status: "empty" }
-	| { status: "loaded"; data: CartSummary };
+	| { status: "loaded"; data: CartSummary }
+	| { status: "error" };
 
 export function CartPage() {
 	const [searchParams] = useSearchParams();
@@ -21,15 +22,19 @@ export function CartPage() {
 	useEffect(() => {
 		if (!sessionId) return;
 
-		fetchCartSummary(sessionId).then((summary) => {
-			if (summary.notFound) {
-				setState({ status: "notFound" });
-			} else if (summary.items.length === 0) {
-				setState({ status: "empty" });
-			} else {
-				setState({ status: "loaded", data: summary });
-			}
-		});
+		fetchCartSummary(sessionId)
+			.then((summary) => {
+				if (summary.notFound) {
+					setState({ status: "notFound" });
+				} else if (summary.items.length === 0) {
+					setState({ status: "empty" });
+				} else {
+					setState({ status: "loaded", data: summary });
+				}
+			})
+			.catch(() => {
+				setState({ status: "error" });
+			});
 	}, [sessionId]);
 
 	return (
@@ -41,6 +46,11 @@ export function CartPage() {
 			{state.status === "notFound" && (
 				<div className="message">
 					<p>Cart not found</p>
+				</div>
+			)}
+			{state.status === "error" && (
+				<div className="message">
+					<p>Something went wrong. Please try again later.</p>
 				</div>
 			)}
 			{state.status === "empty" && (

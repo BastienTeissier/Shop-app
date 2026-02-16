@@ -86,6 +86,16 @@ describe("CartPage", () => {
 		expect(await screen.findByText("Your cart is empty")).toBeInTheDocument();
 	});
 
+	it("renders error message when fetch fails", async () => {
+		mockFetchCartSummary.mockRejectedValue(new Error("Network error"));
+
+		renderCartPage("?session=123e4567-e89b-12d3-a456-426614174000");
+
+		expect(
+			await screen.findByText("Something went wrong. Please try again later."),
+		).toBeInTheDocument();
+	});
+
 	it('renders "Cart not found" when no session param in URL', () => {
 		renderCartPage();
 

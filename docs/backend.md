@@ -12,6 +12,8 @@ server/
 │   ├── index.ts        # Express app entry, middleware setup
 │   ├── server.ts       # MCP server instance, widget registration (orchestration only)
 │   ├── middleware.ts   # MCP transport handler
+│   ├── api/            # REST API handlers (standalone storefront)
+│   │   └── cart.ts     # Cart summary endpoint
 │   ├── db/             # Database layer
 │   │   ├── client.ts   # Prisma client singleton + lifecycle
 │   │   ├── products.ts # Product domain queries
@@ -23,7 +25,8 @@ server/
 │       ├── cart.ts
 │       └── cart-summary.ts
 shared/
-└── types.ts            # Domain types (Product, CartSnapshot, etc.)
+├── types.ts            # Domain types (Product, CartSnapshot, etc.)
+└── format.ts           # Shared formatting utilities (formatPrice, etc.)
 ```
 
 ## MCP Server & Widget Registration

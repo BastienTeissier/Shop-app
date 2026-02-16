@@ -89,7 +89,9 @@ export async function cartRemoveItem(
 	return cartGetSnapshot(cartId);
 }
 
-export async function cartGetSummary(sessionId: string): Promise<CartSummary> {
+export async function cartGetSummary(
+	sessionId: string,
+): Promise<CartSummary | null> {
 	const cart = await prisma.cart.findUnique({
 		where: { sessionId },
 		include: {
@@ -104,7 +106,7 @@ export async function cartGetSummary(sessionId: string): Promise<CartSummary> {
 	});
 
 	if (!cart) {
-		return { items: [], subtotal: 0, notFound: true };
+		return null;
 	}
 
 	const items: CartSummaryItem[] = cart.items.map((item) => ({
@@ -118,5 +120,5 @@ export async function cartGetSummary(sessionId: string): Promise<CartSummary> {
 
 	const subtotal = items.reduce((sum, item) => sum + item.lineTotal, 0);
 
-	return { items, subtotal, notFound: false };
+	return { items, subtotal };
 }

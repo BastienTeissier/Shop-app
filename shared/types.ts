@@ -42,5 +42,4 @@ export type CartSummaryItem = {
 export type CartSummary = {
 	items: CartSummaryItem[];
 	subtotal: number;
-	notFound: boolean;
 };

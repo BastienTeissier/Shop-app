@@ -1,5 +1,6 @@
 import "@/index.css";
 
+import { formatPrice } from "@shared/format.js";
 import type { CartSnapshot, CartWidgetState, Product } from "@shared/types.js";
 import { useEffect, useState } from "react";
 import {
@@ -44,7 +45,6 @@ const translations: Record<string, Record<string, string>> = {
 };
 
 const STORE_URL = import.meta.env.VITE_STORE_URL || "http://localhost:4000";
-const formatPrice = (priceCents: number) => `$${(priceCents / 100).toFixed(2)}`;
 
 export function EcomCarousel() {
 	const { theme } = useLayout();

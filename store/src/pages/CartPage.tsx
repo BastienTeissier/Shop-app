@@ -1,9 +1,8 @@
+import { formatPrice } from "@shared/format.js";
 import type { CartSummary } from "@shared/types.js";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { fetchCartSummary } from "../api";
-
-const formatPrice = (priceCents: number) => `$${(priceCents / 100).toFixed(2)}`;
 
 type State =
 	| { status: "loading" }

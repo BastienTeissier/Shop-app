@@ -21,11 +21,14 @@ export function CartPage() {
 					<p>Something went wrong. Please try again later.</p>
 				</div>
 			)}
-			{!loading && !notFound && !(error && !cart) && cart?.items.length === 0 && (
-				<div className="message">
-					<p>Your cart is empty</p>
-				</div>
-			)}
+			{!loading &&
+				!notFound &&
+				!(error && !cart) &&
+				cart?.items.length === 0 && (
+					<div className="message">
+						<p>Your cart is empty</p>
+					</div>
+				)}
 			{cart && cart.items.length > 0 && (
 				<>
 					<div className="summary-list">
@@ -82,10 +85,7 @@ export function CartPage() {
 						<span>Subtotal</span>
 						<span>{formatPrice(cart.subtotal)}</span>
 					</div>
-					<Link
-						to={`/checkout?session=${sessionId}`}
-						className="checkout-btn"
-					>
+					<Link to={`/checkout?session=${sessionId}`} className="checkout-btn">
 						Proceed to checkout
 					</Link>
 				</>

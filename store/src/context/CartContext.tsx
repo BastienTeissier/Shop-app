@@ -33,9 +33,7 @@ const CartContext = createContext<CartContextValue | null>(null);
 
 const ERROR_DISMISS_MS = 3000;
 
-function cartFromResponse(
-	res: CartSummaryApiResponse,
-): CartSummary | null {
+function cartFromResponse(res: CartSummaryApiResponse): CartSummary | null {
 	if (res.notFound) return null;
 	return { items: res.items, subtotal: res.subtotal };
 }
@@ -79,8 +77,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 	}, [sessionId]);
 
 	const totalQuantity = useMemo(
-		() =>
-			cart ? cart.items.reduce((sum, item) => sum + item.quantity, 0) : 0,
+		() => (cart ? cart.items.reduce((sum, item) => sum + item.quantity, 0) : 0),
 		[cart],
 	);
 

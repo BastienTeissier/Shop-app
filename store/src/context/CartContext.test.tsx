@@ -53,10 +53,7 @@ function TestConsumer() {
 					>
 						+{item.productId}
 					</button>
-					<button
-						type="button"
-						onClick={() => removeItem(item.productId)}
-					>
+					<button type="button" onClick={() => removeItem(item.productId)}>
 						remove-{item.productId}
 					</button>
 				</div>
@@ -146,7 +143,9 @@ describe("CartContext", () => {
 		renderWithProvider("?session=123e4567-e89b-12d3-a456-426614174000");
 
 		await waitFor(() => {
-			expect(screen.getByText(/Error: Failed to load cart/)).toBeInTheDocument();
+			expect(
+				screen.getByText(/Error: Failed to load cart/),
+			).toBeInTheDocument();
 		});
 	});
 

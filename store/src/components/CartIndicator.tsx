@@ -11,10 +11,7 @@ export function CartIndicator() {
 		<>
 			{error && <div className="error-banner">{error}</div>}
 			<div className="cart-indicator">
-				<Link
-					to={`/cart?session=${sessionId}`}
-					className="cart-indicator-link"
-				>
+				<Link to={`/cart?session=${sessionId}`} className="cart-indicator-link">
 					{totalQuantity} {totalQuantity === 1 ? "item" : "items"} &middot;{" "}
 					{formatPrice(cart.subtotal)}
 				</Link>

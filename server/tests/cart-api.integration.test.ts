@@ -412,9 +412,13 @@ describe("DELETE /api/cart/:sessionId/items/:productId", () => {
 			},
 		});
 
-		const ctx = createMockContext(sessionId, {}, {
-			productId: String(testProductId),
-		});
+		const ctx = createMockContext(
+			sessionId,
+			{},
+			{
+				productId: String(testProductId),
+			},
+		);
 		await cartRemoveItemApiHandler(
 			ctx.req as unknown as Request,
 			ctx.res as unknown as Response,
@@ -431,9 +435,13 @@ describe("DELETE /api/cart/:sessionId/items/:productId", () => {
 	});
 
 	it("returns 404 for unknown session", async () => {
-		const ctx = createMockContext(crypto.randomUUID(), {}, {
-			productId: String(testProductId),
-		});
+		const ctx = createMockContext(
+			crypto.randomUUID(),
+			{},
+			{
+				productId: String(testProductId),
+			},
+		);
 		await cartRemoveItemApiHandler(
 			ctx.req as unknown as Request,
 			ctx.res as unknown as Response,

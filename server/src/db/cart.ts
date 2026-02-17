@@ -89,6 +89,25 @@ export async function cartRemoveItem(
 	return cartGetSnapshot(cartId);
 }
 
+export async function cartSetItemQuantity(
+	cartId: number,
+	productId: number,
+	quantity: number,
+): Promise<CartSnapshot> {
+	if (quantity <= 0) {
+		await prisma.cartItem.deleteMany({
+			where: { cartId, productId },
+		});
+	} else {
+		await prisma.cartItem.updateMany({
+			where: { cartId, productId },
+			data: { quantity },
+		});
+	}
+
+	return cartGetSnapshot(cartId);
+}
+
 export async function cartGetSummary(
 	sessionId: string,
 ): Promise<CartSummary | null> {

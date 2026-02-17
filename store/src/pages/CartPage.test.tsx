@@ -1,105 +1,167 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { CartPage } from "./CartPage";
 
-const mockFetchCartSummary = vi.fn();
+// ---------------------------------------------------------------------------
+// Mock useCart
+// ---------------------------------------------------------------------------
 
-vi.mock("../api", () => ({
-	fetchCartSummary: (...args: unknown[]) => mockFetchCartSummary(...args),
+const mockSetQuantity = vi.fn();
+const mockRemoveItem = vi.fn();
+const mockUseCart = vi.fn();
+
+vi.mock("../context/CartContext", () => ({
+	useCart: () => mockUseCart(),
 }));
 
-function renderCartPage(search = "") {
+function renderCartPage() {
 	return render(
-		<MemoryRouter initialEntries={[`/cart${search}`]}>
+		<MemoryRouter initialEntries={["/cart?session=test-session"]}>
 			<CartPage />
 		</MemoryRouter>,
 	);
 }
 
+const SAMPLE_CART = {
+	items: [
+		{
+			productId: 1,
+			title: "Running Shoes",
+			imageUrl: "https://example.com/shoes.png",
+			unitPriceSnapshot: 9999,
+			quantity: 2,
+			lineTotal: 19998,
+		},
+		{
+			productId: 2,
+			title: "Running Socks",
+			imageUrl: "https://example.com/socks.png",
+			unitPriceSnapshot: 1499,
+			quantity: 1,
+			lineTotal: 1499,
+		},
+	],
+	subtotal: 21497,
+};
+
+function mockCartState(overrides: Record<string, unknown> = {}) {
+	mockUseCart.mockReturnValue({
+		cart: SAMPLE_CART,
+		sessionId: "test-session",
+		loading: false,
+		notFound: false,
+		error: null,
+		totalQuantity: 3,
+		setQuantity: mockSetQuantity,
+		removeItem: mockRemoveItem,
+		addItem: vi.fn(),
+		clearError: vi.fn(),
+		...overrides,
+	});
+}
+
+// ---------------------------------------------------------------------------
+// Tests
+// ---------------------------------------------------------------------------
+
 describe("CartPage", () => {
 	beforeEach(() => {
-		mockFetchCartSummary.mockReset();
+		mockUseCart.mockReset();
+		mockSetQuantity.mockReset();
+		mockRemoveItem.mockReset();
 	});
 
-	it("renders cart items when session is valid", async () => {
-		mockFetchCartSummary.mockResolvedValue({
-			notFound: false,
-			items: [
-				{
-					productId: 1,
-					title: "Running Shoes",
-					imageUrl: "https://example.com/shoes.png",
-					unitPriceSnapshot: 9999,
-					quantity: 2,
-					lineTotal: 19998,
-				},
-				{
-					productId: 2,
-					title: "Running Socks",
-					imageUrl: "https://example.com/socks.png",
-					unitPriceSnapshot: 1499,
-					quantity: 1,
-					lineTotal: 1499,
-				},
-			],
-			subtotal: 21497,
-		});
-
-		renderCartPage("?session=123e4567-e89b-12d3-a456-426614174000");
-
-		expect(await screen.findByText("Running Shoes")).toBeInTheDocument();
-		expect(screen.getByText("Running Socks")).toBeInTheDocument();
-		// Price + quantity rendered together: "$99.99 × 2"
-		expect(screen.getByText(/\$99\.99/)).toBeInTheDocument();
-		expect(screen.getByText(/× 2/)).toBeInTheDocument();
-		// Line totals
-		expect(screen.getByText("$199.98")).toBeInTheDocument();
-		// $14.99 appears twice (unit price and line total for qty 1)
-		expect(screen.getAllByText("$14.99")).toHaveLength(2);
-		// Subtotal
-		expect(screen.getByText("$214.97")).toBeInTheDocument();
-		expect(screen.getByText("Subtotal")).toBeInTheDocument();
-	});
-
-	it('renders "Cart not found" when response has notFound: true', async () => {
-		mockFetchCartSummary.mockResolvedValue({
-			notFound: true,
-			items: [],
-			subtotal: 0,
-		});
-
-		renderCartPage("?session=00000000-0000-0000-0000-000000000000");
-
-		expect(await screen.findByText("Cart not found")).toBeInTheDocument();
-	});
-
-	it('renders "Your cart is empty" when cart has zero items', async () => {
-		mockFetchCartSummary.mockResolvedValue({
-			notFound: false,
-			items: [],
-			subtotal: 0,
-		});
-
-		renderCartPage("?session=123e4567-e89b-12d3-a456-426614174000");
-
-		expect(await screen.findByText("Your cart is empty")).toBeInTheDocument();
-	});
-
-	it("renders error message when fetch fails", async () => {
-		mockFetchCartSummary.mockRejectedValue(new Error("Network error"));
-
-		renderCartPage("?session=123e4567-e89b-12d3-a456-426614174000");
-
-		expect(
-			await screen.findByText("Something went wrong. Please try again later."),
-		).toBeInTheDocument();
-	});
-
-	it('renders "Cart not found" when no session param in URL', () => {
+	it("renders quantity controls for each item", () => {
+		mockCartState();
 		renderCartPage();
 
+		// Each item has +/- buttons
+		const decreaseButtons = screen.getAllByText("-");
+		const increaseButtons = screen.getAllByText("+");
+		expect(decreaseButtons).toHaveLength(2);
+		expect(increaseButtons).toHaveLength(2);
+
+		// Quantity values visible
+		expect(screen.getByText("2")).toBeInTheDocument(); // Shoes qty
+		expect(screen.getByText("1")).toBeInTheDocument(); // Socks qty
+	});
+
+	it("calls setQuantity with incremented value on + click", async () => {
+		const user = userEvent.setup();
+		mockCartState();
+		renderCartPage();
+
+		const increaseButtons = screen.getAllByText("+");
+		// Click + on first item (Shoes, qty 2 -> 3)
+		await user.click(increaseButtons[0]);
+
+		expect(mockSetQuantity).toHaveBeenCalledWith(1, 3);
+	});
+
+	it("calls setQuantity with decremented value on - click", async () => {
+		const user = userEvent.setup();
+		mockCartState();
+		renderCartPage();
+
+		const decreaseButtons = screen.getAllByText("-");
+		// Click - on first item (Shoes, qty 2 -> 1)
+		await user.click(decreaseButtons[0]);
+
+		expect(mockSetQuantity).toHaveBeenCalledWith(1, 1);
+	});
+
+	it("calls removeItem on Remove button click", async () => {
+		const user = userEvent.setup();
+		mockCartState();
+		renderCartPage();
+
+		const removeButtons = screen.getAllByText("Remove");
+		await user.click(removeButtons[0]);
+
+		expect(mockRemoveItem).toHaveBeenCalledWith(1);
+	});
+
+	it('renders "Proceed to checkout" link to /checkout', () => {
+		mockCartState();
+		renderCartPage();
+
+		const link = screen.getByText("Proceed to checkout");
+		expect(link).toHaveAttribute("href", "/checkout?session=test-session");
+	});
+
+	it("shows error banner when context has error", () => {
+		mockCartState({ error: "Something went wrong" });
+		renderCartPage();
+
+		expect(screen.getByText("Something went wrong")).toBeInTheDocument();
+	});
+
+	it("renders loading, notFound, empty, error states", () => {
+		// Loading
+		mockCartState({ loading: true, cart: null });
+		const { unmount: u1 } = renderCartPage();
+		expect(screen.getByText("Loading...")).toBeInTheDocument();
+		u1();
+
+		// Not found
+		mockCartState({ notFound: true, cart: null });
+		const { unmount: u2 } = renderCartPage();
 		expect(screen.getByText("Cart not found")).toBeInTheDocument();
-		expect(mockFetchCartSummary).not.toHaveBeenCalled();
+		u2();
+
+		// Error without cart
+		mockCartState({ error: "Network error", cart: null });
+		const { unmount: u3 } = renderCartPage();
+		expect(
+			screen.getByText("Something went wrong. Please try again later."),
+		).toBeInTheDocument();
+		u3();
+
+		// Empty cart
+		mockCartState({ cart: { items: [], subtotal: 0 } });
+		renderCartPage();
+		expect(screen.getByText("Your cart is empty")).toBeInTheDocument();
 	});
 });

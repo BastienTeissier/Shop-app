@@ -1,66 +1,35 @@
 import { formatPrice } from "@shared/format.js";
-import type { CartSummary } from "@shared/types.js";
-import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
-import { fetchCartSummary } from "../api";
-
-type State =
-	| { status: "loading" }
-	| { status: "notFound" }
-	| { status: "empty" }
-	| { status: "loaded"; data: CartSummary }
-	| { status: "error" };
+import { Link } from "react-router-dom";
+import { useCart } from "../context/CartContext";
 
 export function CartPage() {
-	const [searchParams] = useSearchParams();
-	const sessionId = searchParams.get("session");
-	const [state, setState] = useState<State>(
-		sessionId ? { status: "loading" } : { status: "notFound" },
-	);
-
-	useEffect(() => {
-		if (!sessionId) return;
-
-		fetchCartSummary(sessionId)
-			.then((summary) => {
-				if (summary.notFound) {
-					setState({ status: "notFound" });
-				} else if (summary.items.length === 0) {
-					setState({ status: "empty" });
-				} else {
-					setState({ status: "loaded", data: summary });
-				}
-			})
-			.catch(() => {
-				setState({ status: "error" });
-			});
-	}, [sessionId]);
+	const { cart, sessionId, loading, notFound, error, setQuantity, removeItem } =
+		useCart();
 
 	return (
 		<div className="page-container">
 			<h1 className="page-title">Your Cart</h1>
-			{state.status === "loading" && (
-				<div className="loading-spinner">Loading...</div>
-			)}
-			{state.status === "notFound" && (
+			{error && cart && <div className="error-banner">{error}</div>}
+			{loading && <div className="loading-spinner">Loading...</div>}
+			{notFound && (
 				<div className="message">
 					<p>Cart not found</p>
 				</div>
 			)}
-			{state.status === "error" && (
+			{error && !cart && (
 				<div className="message">
 					<p>Something went wrong. Please try again later.</p>
 				</div>
 			)}
-			{state.status === "empty" && (
+			{!loading && !notFound && !(error && !cart) && cart?.items.length === 0 && (
 				<div className="message">
 					<p>Your cart is empty</p>
 				</div>
 			)}
-			{state.status === "loaded" && (
+			{cart && cart.items.length > 0 && (
 				<>
 					<div className="summary-list">
-						{state.data.items.map((item) => (
+						{cart.items.map((item) => (
 							<div key={item.productId} className="summary-item">
 								<img
 									src={item.imageUrl}
@@ -71,8 +40,37 @@ export function CartPage() {
 									<div className="summary-item-title">{item.title}</div>
 									<div className="summary-item-price">
 										{formatPrice(item.unitPriceSnapshot)}
-										{item.quantity > 1 && ` × ${item.quantity}`}
 									</div>
+									<div className="quantity-controls">
+										<button
+											type="button"
+											className="quantity-btn"
+											aria-label={`Decrease quantity of ${item.title}`}
+											onClick={() =>
+												setQuantity(item.productId, item.quantity - 1)
+											}
+										>
+											-
+										</button>
+										<span className="quantity-value">{item.quantity}</span>
+										<button
+											type="button"
+											className="quantity-btn"
+											aria-label={`Increase quantity of ${item.title}`}
+											onClick={() =>
+												setQuantity(item.productId, item.quantity + 1)
+											}
+										>
+											+
+										</button>
+									</div>
+									<button
+										type="button"
+										className="remove-btn"
+										onClick={() => removeItem(item.productId)}
+									>
+										Remove
+									</button>
 								</div>
 								<div className="summary-item-total">
 									{formatPrice(item.lineTotal)}
@@ -82,8 +80,14 @@ export function CartPage() {
 					</div>
 					<div className="summary-subtotal">
 						<span>Subtotal</span>
-						<span>{formatPrice(state.data.subtotal)}</span>
+						<span>{formatPrice(cart.subtotal)}</span>
 					</div>
+					<Link
+						to={`/checkout?session=${sessionId}`}
+						className="checkout-btn"
+					>
+						Proceed to checkout
+					</Link>
 				</>
 			)}
 		</div>

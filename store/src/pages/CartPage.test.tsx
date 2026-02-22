@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { CartPage } from "./CartPage";
+import { CartPage } from "./CartPage.js";
 
 // ---------------------------------------------------------------------------
 // Mock useCart
@@ -12,7 +12,7 @@ const mockSetQuantity = vi.fn();
 const mockRemoveItem = vi.fn();
 const mockUseCart = vi.fn();
 
-vi.mock("../context/CartContext", () => ({
+vi.mock("../context/CartContext.js", () => ({
 	useCart: () => mockUseCart(),
 }));
 

@@ -171,6 +171,7 @@ sport-shop/
 | `pnpm lint:fix`         | Auto-fix Biome issues              | Quick formatting                                  |
 | `pnpm typecheck`        | TypeScript validation              | Verify type safety                                |
 | `pnpm test:unit`        | Run component tests                | After modifying React components                  |
+| `pnpm test:store`       | Run store app tests                | After modifying store/ components or context       |
 | `pnpm test:integration` | Run MCP tool tests                 | After modifying server queries or endpoints       |
 | `pnpm db:migrate`       | Create and apply migration         | After changing `schema.prisma`                    |
 | `pnpm db:seed`          | Load products from `products.json` | First setup or reset data                         |

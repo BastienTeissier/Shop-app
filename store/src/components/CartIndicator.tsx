@@ -1,6 +1,6 @@
 import { formatPrice } from "@shared/format.js";
 import { Link } from "react-router-dom";
-import { useCart } from "../context/CartContext";
+import { useCart } from "../context/CartContext.js";
 
 export function CartIndicator() {
 	const { cart, sessionId, totalQuantity, error } = useCart();

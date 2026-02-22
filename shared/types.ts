@@ -43,3 +43,6 @@ export type CartSummary = {
 	items: CartSummaryItem[];
 	subtotal: number;
 };
+
+// API response type (used by REST endpoints and store frontend)
+export type CartSummaryApiResponse = CartSummary & { notFound: boolean };

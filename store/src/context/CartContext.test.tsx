@@ -2,7 +2,7 @@ import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { CartProvider, useCart } from "./CartContext";
+import { CartProvider, useCart } from "./CartContext.js";
 
 // ---------------------------------------------------------------------------
 // Mocks
@@ -13,7 +13,7 @@ const mockUpdateCartItemQuantity = vi.fn();
 const mockRemoveCartItem = vi.fn();
 const mockAddCartItem = vi.fn();
 
-vi.mock("../api", () => ({
+vi.mock("../api.js", () => ({
 	fetchCartSummary: (...args: unknown[]) => mockFetchCartSummary(...args),
 	updateCartItemQuantity: (...args: unknown[]) =>
 		mockUpdateCartItemQuantity(...args),

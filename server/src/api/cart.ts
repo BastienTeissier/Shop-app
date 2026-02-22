@@ -1,4 +1,4 @@
-import type { CartSummary } from "@shared/types.js";
+import type { CartSummaryApiResponse } from "@shared/types.js";
 import type { Request, Response } from "express";
 import { z } from "zod";
 import {
@@ -9,8 +9,6 @@ import {
 	cartSetItemQuantity,
 } from "../db/cart.js";
 import { validateCartSession } from "../tools/utils.js";
-
-export type CartSummaryApiResponse = CartSummary & { notFound: boolean };
 
 const NOT_FOUND_CART_FALLBACK: CartSummaryApiResponse = {
 	items: [],

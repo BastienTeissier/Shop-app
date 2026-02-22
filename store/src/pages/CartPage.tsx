@@ -1,10 +1,12 @@
 import { formatPrice } from "@shared/format.js";
 import { Link } from "react-router-dom";
-import { useCart } from "../context/CartContext";
+import { useCart } from "../context/CartContext.js";
 
 export function CartPage() {
 	const { cart, sessionId, loading, notFound, error, setQuantity, removeItem } =
 		useCart();
+
+	const showEmpty = !loading && !notFound && !error && cart?.items.length === 0;
 
 	return (
 		<div className="page-container">
@@ -21,14 +23,11 @@ export function CartPage() {
 					<p>Something went wrong. Please try again later.</p>
 				</div>
 			)}
-			{!loading &&
-				!notFound &&
-				!(error && !cart) &&
-				cart?.items.length === 0 && (
-					<div className="message">
-						<p>Your cart is empty</p>
-					</div>
-				)}
+			{showEmpty && (
+				<div className="message">
+					<p>Your cart is empty</p>
+				</div>
+			)}
 			{cart && cart.items.length > 0 && (
 				<>
 					<div className="summary-list">

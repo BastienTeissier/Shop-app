@@ -21,6 +21,7 @@
 		"build:store": "pnpm --filter store build",
 		"test:integration": "dotenvx run -f .env.test -- prisma migrate reset --force --skip-seed && dotenvx run -f .env.test -- vitest run server/tests --no-file-parallelism",
 		"test:unit": "vitest run --config web/vite.config.ts",
+		"test:store": "pnpm --filter store test",
 		"db:generate": "prisma generate",
 		"db:migrate": "prisma migrate dev",
 		"db:deploy": "prisma migrate deploy",

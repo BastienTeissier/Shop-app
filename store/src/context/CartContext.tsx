@@ -1,4 +1,4 @@
-import type { CartSummary } from "@shared/types.js";
+import type { CartSummary, CartSummaryApiResponse } from "@shared/types.js";
 import {
 	createContext,
 	useCallback,
@@ -8,13 +8,12 @@ import {
 	useState,
 } from "react";
 import { useSearchParams } from "react-router-dom";
-import type { CartSummaryApiResponse } from "../api";
 import {
 	addCartItem,
 	fetchCartSummary,
 	removeCartItem,
 	updateCartItemQuantity,
-} from "../api";
+} from "../api.js";
 
 type CartContextValue = {
 	cart: CartSummary | null;
@@ -36,6 +35,10 @@ const ERROR_DISMISS_MS = 3000;
 function cartFromResponse(res: CartSummaryApiResponse): CartSummary | null {
 	if (res.notFound) return null;
 	return { items: res.items, subtotal: res.subtotal };
+}
+
+function sumLineTotals(items: CartSummary["items"]): number {
+	return items.reduce((sum, item) => sum + item.lineTotal, 0);
 }
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
@@ -92,11 +95,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 				const newItems = cart.items.filter(
 					(item) => item.productId !== productId,
 				);
-				const newSubtotal = newItems.reduce(
-					(sum, item) => sum + item.lineTotal,
-					0,
-				);
-				setCart({ items: newItems, subtotal: newSubtotal });
+				setCart({ items: newItems, subtotal: sumLineTotals(newItems) });
 			} else {
 				const newItems = cart.items.map((item) =>
 					item.productId === productId
@@ -107,11 +106,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 							}
 						: item,
 				);
-				const newSubtotal = newItems.reduce(
-					(sum, item) => sum + item.lineTotal,
-					0,
-				);
-				setCart({ items: newItems, subtotal: newSubtotal });
+				setCart({ items: newItems, subtotal: sumLineTotals(newItems) });
 			}
 
 			updateCartItemQuantity(sessionId, productId, quantity)
@@ -137,11 +132,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 			const newItems = cart.items.filter(
 				(item) => item.productId !== productId,
 			);
-			const newSubtotal = newItems.reduce(
-				(sum, item) => sum + item.lineTotal,
-				0,
-			);
-			setCart({ items: newItems, subtotal: newSubtotal });
+			setCart({ items: newItems, subtotal: sumLineTotals(newItems) });
 
 			removeCartItem(sessionId, productId)
 				.then((res) => {

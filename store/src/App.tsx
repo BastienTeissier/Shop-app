@@ -1,7 +1,7 @@
 import { Route, Routes } from "react-router-dom";
-import { CartIndicator } from "./components/CartIndicator";
-import { CartProvider } from "./context/CartContext";
-import { CartPage } from "./pages/CartPage";
+import { CartIndicator } from "./components/CartIndicator.js";
+import { CartProvider } from "./context/CartContext.js";
+import { CartPage } from "./pages/CartPage.js";
 
 export function App() {
 	return (

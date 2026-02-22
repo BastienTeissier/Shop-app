@@ -1,6 +1,4 @@
-import type { CartSummary } from "@shared/types.js";
-
-export type CartSummaryApiResponse = CartSummary & { notFound: boolean };
+import type { CartSummaryApiResponse } from "@shared/types.js";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000";
 

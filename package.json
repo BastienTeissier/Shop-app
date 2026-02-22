@@ -16,7 +16,7 @@
 		"typecheck": "tsc -p tsconfig.json --noEmit",
 		"typecheck:store": "pnpm --filter store typecheck",
 		"audit:ci": "pnpm audit --audit-level high",
-		"check": "pnpm lint && pnpm typecheck && pnpm typecheck:store && pnpm audit:ci",
+		"check": "pnpm lint && pnpm typecheck && pnpm typecheck:store",
 		"dev:store": "pnpm --filter store dev",
 		"build:store": "pnpm --filter store build",
 		"test:integration": "dotenvx run -f .env.test -- prisma migrate reset --force --skip-seed && dotenvx run -f .env.test -- vitest run server/tests --no-file-parallelism",

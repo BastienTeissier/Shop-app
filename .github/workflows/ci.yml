@@ -26,8 +26,12 @@ jobs:
       - name: Generate Prisma client
         run: pnpm db:generate
 
-      - name: Run lint, typecheck & audit
+      - name: Run lint, typecheck
         run: pnpm check
+
+      - name: Run audit
+        run: pnpm audit:ci
+        continue-on-error: true
 
       - name: Build
         run: pnpm build

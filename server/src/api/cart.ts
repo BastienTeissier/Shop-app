@@ -10,10 +10,24 @@ import {
 } from "../db/cart.js";
 import { validateCartSession } from "../tools/utils.js";
 
-const NOT_FOUND_CART_FALLBACK: CartSummaryApiResponse = {
+const CART_NOT_FOUND: CartSummaryApiResponse = {
 	items: [],
 	subtotal: 0,
 	notFound: true,
+};
+
+const BAD_REQUEST: CartSummaryApiResponse = {
+	items: [],
+	subtotal: 0,
+	notFound: false,
+	error: "bad_request",
+};
+
+const INTERNAL_ERROR: CartSummaryApiResponse = {
+	items: [],
+	subtotal: 0,
+	notFound: false,
+	error: "internal_error",
 };
 
 const addItemBodySchema = z.object({
@@ -31,13 +45,13 @@ const updateItemBodySchema = z.object({
 async function resolveCart(sessionId: string, res: Response) {
 	const validation = validateCartSession(sessionId);
 	if (!validation.valid) {
-		res.status(400).json(NOT_FOUND_CART_FALLBACK);
+		res.status(400).json(BAD_REQUEST);
 		return null;
 	}
 
 	const cart = await cartGetBySessionId(sessionId);
 	if (!cart) {
-		res.status(404).json(NOT_FOUND_CART_FALLBACK);
+		res.status(404).json(CART_NOT_FOUND);
 		return null;
 	}
 
@@ -47,7 +61,7 @@ async function resolveCart(sessionId: string, res: Response) {
 async function respondWithSummary(sessionId: string, res: Response) {
 	const summary = await cartGetSummary(sessionId);
 	if (!summary) {
-		res.json(NOT_FOUND_CART_FALLBACK);
+		res.json(CART_NOT_FOUND);
 		return;
 	}
 	res.json({ ...summary, notFound: false });
@@ -65,19 +79,20 @@ export async function cartSummaryApiHandler(
 
 	const validation = validateCartSession(sessionId);
 	if (!validation.valid) {
-		res.status(400).json(NOT_FOUND_CART_FALLBACK);
+		res.status(400).json(BAD_REQUEST);
 		return;
 	}
 
 	try {
 		const summary = await cartGetSummary(sessionId);
 		if (!summary) {
-			res.json(NOT_FOUND_CART_FALLBACK);
+			res.json(CART_NOT_FOUND);
 			return;
 		}
 		res.json({ ...summary, notFound: false });
-	} catch {
-		res.status(500).json(NOT_FOUND_CART_FALLBACK);
+	} catch (err) {
+		console.error("cartSummaryApiHandler failed:", err);
+		res.status(500).json(INTERNAL_ERROR);
 	}
 }
 
@@ -93,7 +108,7 @@ export async function cartAddItemApiHandler(
 
 	const bodyResult = addItemBodySchema.safeParse(req.body);
 	if (!bodyResult.success) {
-		res.status(400).json(NOT_FOUND_CART_FALLBACK);
+		res.status(400).json(BAD_REQUEST);
 		return;
 	}
 
@@ -103,8 +118,9 @@ export async function cartAddItemApiHandler(
 
 		await cartAddItem(cart.id, bodyResult.data.productId);
 		await respondWithSummary(sessionId, res);
-	} catch {
-		res.status(500).json(NOT_FOUND_CART_FALLBACK);
+	} catch (err) {
+		console.error("cartAddItemApiHandler failed:", err);
+		res.status(500).json(INTERNAL_ERROR);
 	}
 }
 
@@ -120,13 +136,13 @@ export async function cartUpdateItemApiHandler(
 
 	const bodyResult = updateItemBodySchema.safeParse(req.body);
 	if (!bodyResult.success) {
-		res.status(400).json(NOT_FOUND_CART_FALLBACK);
+		res.status(400).json(BAD_REQUEST);
 		return;
 	}
 
 	const productId = Number(productIdParam);
 	if (!Number.isInteger(productId) || productId <= 0) {
-		res.status(400).json(NOT_FOUND_CART_FALLBACK);
+		res.status(400).json(BAD_REQUEST);
 		return;
 	}
 
@@ -142,8 +158,9 @@ export async function cartUpdateItemApiHandler(
 		}
 
 		await respondWithSummary(sessionId, res);
-	} catch {
-		res.status(500).json(NOT_FOUND_CART_FALLBACK);
+	} catch (err) {
+		console.error("cartUpdateItemApiHandler failed:", err);
+		res.status(500).json(INTERNAL_ERROR);
 	}
 }
 
@@ -159,7 +176,7 @@ export async function cartRemoveItemApiHandler(
 
 	const productId = Number(productIdParam);
 	if (!Number.isInteger(productId) || productId <= 0) {
-		res.status(400).json(NOT_FOUND_CART_FALLBACK);
+		res.status(400).json(BAD_REQUEST);
 		return;
 	}
 
@@ -169,7 +186,8 @@ export async function cartRemoveItemApiHandler(
 
 		await cartRemoveItem(cart.id, productId);
 		await respondWithSummary(sessionId, res);
-	} catch {
-		res.status(500).json(NOT_FOUND_CART_FALLBACK);
+	} catch (err) {
+		console.error("cartRemoveItemApiHandler failed:", err);
+		res.status(500).json(INTERNAL_ERROR);
 	}
 }

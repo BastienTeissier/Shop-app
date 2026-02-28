@@ -161,7 +161,8 @@ describe("GET /api/cart/:sessionId/summary", () => {
 		expect(ctx.responseBody()).toEqual({
 			items: [],
 			subtotal: 0,
-			notFound: true,
+			notFound: false,
+			error: "bad_request",
 		});
 	});
 });
@@ -254,7 +255,8 @@ describe("POST /api/cart/:sessionId/items", () => {
 		expect(ctx.responseBody()).toEqual({
 			items: [],
 			subtotal: 0,
-			notFound: true,
+			notFound: false,
+			error: "bad_request",
 		});
 	});
 

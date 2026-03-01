@@ -37,11 +37,7 @@ export const Default: Story = {
 	decorators: [
 		(Story) => (
 			<MemoryRouter initialEntries={["/checkout?session=test"]}>
-				<MockCartProvider
-					cart={SAMPLE_CART}
-					sessionId="test"
-					totalQuantity={3}
-				>
+				<MockCartProvider cart={SAMPLE_CART} sessionId="test" totalQuantity={3}>
 					<Story />
 				</MockCartProvider>
 			</MemoryRouter>
@@ -53,10 +49,7 @@ export const Empty: Story = {
 	decorators: [
 		(Story) => (
 			<MemoryRouter initialEntries={["/checkout?session=test"]}>
-				<MockCartProvider
-					cart={{ items: [], subtotal: 0 }}
-					sessionId="test"
-				>
+				<MockCartProvider cart={{ items: [], subtotal: 0 }} sessionId="test">
 					<Story />
 				</MockCartProvider>
 			</MemoryRouter>
@@ -83,11 +76,7 @@ export const SubmitError: Story = {
 	decorators: [
 		(Story) => (
 			<MemoryRouter initialEntries={["/checkout?session=test"]}>
-				<MockCartProvider
-					cart={SAMPLE_CART}
-					sessionId="test"
-					totalQuantity={3}
-				>
+				<MockCartProvider cart={SAMPLE_CART} sessionId="test" totalQuantity={3}>
 					<Story />
 				</MockCartProvider>
 			</MemoryRouter>

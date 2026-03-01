@@ -37,11 +37,7 @@ export const WithItems: Story = {
 	decorators: [
 		(Story) => (
 			<MemoryRouter initialEntries={["/cart?session=test"]}>
-				<MockCartProvider
-					cart={SAMPLE_CART}
-					sessionId="test"
-					totalQuantity={3}
-				>
+				<MockCartProvider cart={SAMPLE_CART} sessionId="test" totalQuantity={3}>
 					<Story />
 				</MockCartProvider>
 			</MemoryRouter>
@@ -53,10 +49,7 @@ export const Empty: Story = {
 	decorators: [
 		(Story) => (
 			<MemoryRouter initialEntries={["/cart?session=test"]}>
-				<MockCartProvider
-					cart={{ items: [], subtotal: 0 }}
-					sessionId="test"
-				>
+				<MockCartProvider cart={{ items: [], subtotal: 0 }} sessionId="test">
 					<Story />
 				</MockCartProvider>
 			</MemoryRouter>
@@ -88,7 +81,7 @@ export const NotFound: Story = {
 	],
 };
 
-export const Error: Story = {
+export const ErrorState: Story = {
 	decorators: [
 		(Story) => (
 			<MemoryRouter initialEntries={["/cart?session=test"]}>

@@ -1,5 +1,5 @@
-import type { Meta, StoryObj } from "@storybook/react";
 import type { OrderApiResponse } from "@shared/types.js";
+import type { Meta, StoryObj } from "@storybook/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { MockCartProvider } from "../../.storybook/mocks/CartContext.js";
 import { OrderConfirmationPage } from "./OrderConfirmationPage.js";
@@ -38,9 +38,7 @@ function jsonResponse(data: unknown): Response {
 	});
 }
 
-function withOrderRoute(
-	mockResponse: () => Promise<Response>,
-) {
+function withOrderRoute(mockResponse: () => Promise<Response>) {
 	return (Story: () => React.JSX.Element) => {
 		window.fetch = () => mockResponse();
 		return (
@@ -70,15 +68,11 @@ export const Default: Story = {
 };
 
 export const Loading: Story = {
-	decorators: [
-		withOrderRoute(() => new Promise(() => {})),
-	],
+	decorators: [withOrderRoute(() => new Promise(() => {}))],
 };
 
 export const NotFound: Story = {
 	decorators: [
-		withOrderRoute(() =>
-			Promise.resolve(jsonResponse({ notFound: true })),
-		),
+		withOrderRoute(() => Promise.resolve(jsonResponse({ notFound: true }))),
 	],
 };

@@ -89,7 +89,28 @@ export async function cartRemoveItem(
 	return cartGetSnapshot(cartId);
 }
 
-export async function cartGetSummary(sessionId: string): Promise<CartSummary> {
+export async function cartSetItemQuantity(
+	cartId: number,
+	productId: number,
+	quantity: number,
+): Promise<CartSnapshot> {
+	if (quantity <= 0) {
+		await prisma.cartItem.deleteMany({
+			where: { cartId, productId },
+		});
+	} else {
+		await prisma.cartItem.updateMany({
+			where: { cartId, productId },
+			data: { quantity },
+		});
+	}
+
+	return cartGetSnapshot(cartId);
+}
+
+export async function cartGetSummary(
+	sessionId: string,
+): Promise<CartSummary | null> {
 	const cart = await prisma.cart.findUnique({
 		where: { sessionId },
 		include: {
@@ -104,7 +125,7 @@ export async function cartGetSummary(sessionId: string): Promise<CartSummary> {
 	});
 
 	if (!cart) {
-		return { items: [], subtotal: 0 };
+		return null;
 	}
 
 	const items: CartSummaryItem[] = cart.items.map((item) => ({

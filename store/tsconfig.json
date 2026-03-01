@@ -8,8 +8,7 @@
 		"jsx": "react-jsx",
 		"baseUrl": ".",
 		"paths": {
-			"@/*": ["web/src/*"],
-			"@shared/*": ["shared/*"]
+			"@shared/*": ["../shared/*"]
 		},
 
 		"strict": true,
@@ -24,6 +23,5 @@
 
 		"noEmit": true
 	},
-	"include": ["server/src", "web/src", "web/vite.config.ts", "shared"],
-	"exclude": ["dist", "node_modules"]
+	"include": ["src", "vite.config.ts", "../shared"]
 }

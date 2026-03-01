@@ -23,6 +23,7 @@ An e-commerce carousel application built as a ChatGPT plugin. Users search for p
 sport-shop/
 ├── shared/
 │   ├── types.ts              # Domain types (Product, CartSnapshot, etc.)
+│   ├── format.ts             # Shared formatting utilities (formatPrice, etc.)
 │   └── a2ui-types.ts         # A2UI protocol types + createInitialDataModel factory
 ├── server/
 │   ├── src/
@@ -34,6 +35,8 @@ sport-shop/
 │   │   │   ├── products.ts   # Product domain queries
 │   │   │   ├── cart.ts       # Cart domain queries
 │   │   │   └── index.ts      # Barrel re-exports
+│   │   ├── api/              # REST API handlers (standalone storefront)
+│   │   │   └── cart.ts       # Cart summary endpoint
 │   │   ├── tools/            # Widget handlers (business logic)
 │   │   │   ├── utils.ts      # Shared utilities
 │   │   │   ├── ecom-carousel.ts
@@ -64,6 +67,15 @@ sport-shop/
 │       ├── helpers.ts        # Typed Skybridge hooks
 │       ├── index.css         # Global styles
 │       └── test/
+├── store/                    # Standalone storefront (Vite + React)
+│   ├── src/
+│   │   ├── App.tsx           # Route definitions
+│   │   ├── api.ts            # REST API client
+│   │   ├── main.tsx          # Entry point
+│   │   ├── pages/            # Page components
+│   │   └── test/
+│   ├── vite.config.ts
+│   └── tsconfig.json
 ├── prisma/
 │   ├── schema.prisma         # Data models
 │   └── migrations/
@@ -159,6 +171,7 @@ sport-shop/
 | `pnpm lint:fix`         | Auto-fix Biome issues              | Quick formatting                                  |
 | `pnpm typecheck`        | TypeScript validation              | Verify type safety                                |
 | `pnpm test:unit`        | Run component tests                | After modifying React components                  |
+| `pnpm test:store`       | Run store app tests                | After modifying store/ components or context       |
 | `pnpm test:integration` | Run MCP tool tests                 | After modifying server queries or endpoints       |
 | `pnpm db:migrate`       | Create and apply migration         | After changing `schema.prisma`                    |
 | `pnpm db:seed`          | Load products from `products.json` | First setup or reset data                         |

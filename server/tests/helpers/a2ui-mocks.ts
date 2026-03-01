@@ -22,6 +22,7 @@ export type MockResponse = {
 
 export type MockRequest = {
 	query: Record<string, string>;
+	params: Record<string, string>;
 	body: unknown;
 	on: Mock<[event: string, handler: () => void], MockRequest>;
 };
@@ -68,6 +69,7 @@ export function createSSEMockContext(
 
 	const req: MockRequest = {
 		query,
+		params: {},
 		body: {},
 		on: vi.fn((event: string, handler: () => void) => {
 			if (event === "close") {
@@ -117,6 +119,7 @@ export function createEventMockContext(body: unknown): {
 
 	const req: MockRequest = {
 		query: {},
+		params: {},
 		body,
 		on: vi.fn().mockReturnThis(),
 	};

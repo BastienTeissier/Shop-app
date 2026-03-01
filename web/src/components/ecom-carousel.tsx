@@ -1,5 +1,6 @@
 import "@/index.css";
 
+import { formatPrice } from "@shared/format.js";
 import type { CartSnapshot, CartWidgetState, Product } from "@shared/types.js";
 import { useEffect, useState } from "react";
 import {
@@ -43,8 +44,7 @@ const translations: Record<string, Record<string, string>> = {
 	},
 };
 
-const CHECKOUT_URL = "https://alpic.ai";
-const formatPrice = (priceCents: number) => `$${(priceCents / 100).toFixed(2)}`;
+const STORE_URL = import.meta.env.VITE_STORE_URL || "http://localhost:4000";
 
 export function EcomCarousel() {
 	const { theme } = useLayout();
@@ -185,8 +185,7 @@ export function EcomCarousel() {
 				cartItems.push(p);
 			}
 		}
-		const checkoutUrl = new URL(CHECKOUT_URL);
-		checkoutUrl.searchParams.set("cart", cartProductIds.join(","));
+		const checkoutUrl = `${STORE_URL}/cart?session=${cart.sessionId}`;
 
 		return (
 			<div className={`${theme} checkout`}>
@@ -217,8 +216,8 @@ export function EcomCarousel() {
 				<button
 					type="button"
 					className="checkout-button"
-					onClick={() => openExternal(checkoutUrl.toString())}
-					disabled={cart.cartDisabled}
+					onClick={() => openExternal(checkoutUrl)}
+					disabled={cart.cartDisabled || !cart.sessionId}
 				>
 					Checkout
 				</button>

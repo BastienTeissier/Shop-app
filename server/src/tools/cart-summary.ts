@@ -58,7 +58,13 @@ export async function cartSummaryHandler({ sessionId }: { sessionId: string }) {
 		);
 	}
 
-	const summary: CartSummary = await cartGetSummary(sessionId);
+	const summary = await cartGetSummary(sessionId);
+	if (!summary) {
+		return errorResponse(
+			ERRORS.INVALID_CART_SESSION,
+			emptyCartSummary(sessionId),
+		);
+	}
 
 	return successResponse({
 		sessionId,

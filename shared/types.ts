@@ -43,3 +43,42 @@ export type CartSummary = {
 	items: CartSummaryItem[];
 	subtotal: number;
 };
+
+// API response type (used by REST endpoints and store frontend)
+export type CartSummaryApiResponse = CartSummary & {
+	notFound: boolean;
+	error?: string;
+};
+
+// Order types (used by order submission flow)
+export type OrderSummaryItem = {
+	productId: number;
+	title: string;
+	imageUrl: string;
+	unitPrice: number;
+	quantity: number;
+	lineTotal: number;
+};
+
+export type OrderSummary = {
+	reference: string;
+	customerName: string;
+	customerEmail: string;
+	items: OrderSummaryItem[];
+	totalPrice: number;
+	createdAt: string;
+};
+
+export type OrderApiResponse =
+	| (OrderSummary & { notFound: false })
+	| { notFound: true };
+
+export type CreateOrderRequest = {
+	sessionId: string;
+	customerName: string;
+	customerEmail: string;
+};
+
+export type CreateOrderResponse =
+	| { ok: true; reference: string }
+	| { ok: false; error: string };

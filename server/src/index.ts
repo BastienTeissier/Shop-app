@@ -2,6 +2,12 @@ import express, { type Express } from "express";
 import { widgetsDevServer } from "skybridge/server";
 import type { ViteDevServer } from "vite";
 import { a2uiEventHandler, a2uiStreamHandler } from "./a2ui/index.js";
+import {
+	cartAddItemApiHandler,
+	cartRemoveItemApiHandler,
+	cartSummaryApiHandler,
+	cartUpdateItemApiHandler,
+} from "./api/cart.js";
 import { mcp } from "./middleware.js";
 import server from "./server.js";
 
@@ -11,7 +17,7 @@ app.use(express.json());
 
 app.use((req, res, next) => {
 	res.setHeader("Access-Control-Allow-Origin", "*");
-	res.setHeader("Access-Control-Allow-Methods", "GET,POST,DELETE,OPTIONS");
+	res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
 	res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
 	if (req.method === "OPTIONS") {
@@ -25,6 +31,12 @@ app.use((req, res, next) => {
 // A2UI endpoints for streaming recommendations
 app.get("/api/a2ui/stream", a2uiStreamHandler);
 app.post("/api/a2ui/event", a2uiEventHandler);
+
+// Cart REST endpoints for standalone storefront
+app.get("/api/cart/:sessionId/summary", cartSummaryApiHandler);
+app.post("/api/cart/:sessionId/items", cartAddItemApiHandler);
+app.put("/api/cart/:sessionId/items/:productId", cartUpdateItemApiHandler);
+app.delete("/api/cart/:sessionId/items/:productId", cartRemoveItemApiHandler);
 
 app.use(mcp(server));
 

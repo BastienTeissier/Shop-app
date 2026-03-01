@@ -7,8 +7,9 @@ import {
 	cartRemoveItemApiHandler,
 	cartSummaryApiHandler,
 	cartUpdateItemApiHandler,
-} from "./api/cart.js";
-import { orderCreateApiHandler, orderGetApiHandler } from "./api/order.js";
+	orderCreateApiHandler,
+	orderGetApiHandler,
+} from "./api/index.js";
 import { mcp } from "./middleware.js";
 import server from "./server.js";
 

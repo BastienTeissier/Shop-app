@@ -54,7 +54,8 @@ export async function orderCreateApiHandler(req: Request, res: Response) {
 		});
 
 		res.status(201).json({ ok: true, reference });
-	} catch {
+	} catch (err) {
+		console.error("orderCreateApiHandler failed:", err);
 		res.status(500).json({ ok: false, error: "Something went wrong" });
 	}
 }
@@ -83,7 +84,8 @@ export async function orderGetApiHandler(
 		}
 
 		res.json({ ...order, notFound: false });
-	} catch {
+	} catch (err) {
+		console.error("orderGetApiHandler failed:", err);
 		res.status(500).json({ notFound: true });
 	}
 }

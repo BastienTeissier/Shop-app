@@ -34,9 +34,12 @@ sport-shop/
 │   │   │   ├── client.ts     # Prisma singleton + lifecycle
 │   │   │   ├── products.ts   # Product domain queries
 │   │   │   ├── cart.ts       # Cart domain queries
+│   │   │   ├── order.ts      # Order domain queries
 │   │   │   └── index.ts      # Barrel re-exports
 │   │   ├── api/              # REST API handlers (standalone storefront)
-│   │   │   └── cart.ts       # Cart summary endpoint
+│   │   │   ├── cart.ts       # Cart REST endpoints
+│   │   │   ├── order.ts      # Order REST endpoints
+│   │   │   └── index.ts      # Barrel re-exports
 │   │   ├── tools/            # Widget handlers (business logic)
 │   │   │   ├── utils.ts      # Shared utilities
 │   │   │   ├── ecom-carousel.ts

@@ -90,6 +90,9 @@ importers:
       nodemon:
         specifier: ^3.1.11
         version: 3.1.11
+      playwright:
+        specifier: ^1.58.2
+        version: 1.58.2
       prisma:
         specifier: ^5.22.0
         version: 5.22.0

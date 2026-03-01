@@ -81,6 +81,9 @@ export async function submitOrder(
 		headers: { "Content-Type": "application/json" },
 		body: JSON.stringify({ sessionId, customerName, customerEmail }),
 	});
+	if (!res.ok) {
+		throw new Error(`Failed to submit order (${res.status})`);
+	}
 	const data: CreateOrderResponse = await res.json();
 	if (!data.ok) {
 		throw new Error(data.error);

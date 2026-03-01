@@ -74,6 +74,12 @@ sport-shop/
 │   │   ├── main.tsx          # Entry point
 │   │   ├── pages/            # Page components
 │   │   └── test/
+│   ├── .storybook/           # Storybook config + mocks
+│   │   ├── main.ts
+│   │   ├── preview.tsx
+│   │   └── mocks/CartContext.tsx
+│   ├── scripts/
+│   │   └── verify-design.mjs # Playwright screenshot capture
 │   ├── vite.config.ts
 │   └── tsconfig.json
 ├── prisma/
@@ -178,6 +184,10 @@ sport-shop/
 | `pnpm db:reset`         | Wipe and recreate database         | Clean slate for testing                           |
 | `pnpm db:studio`        | Open Prisma Studio GUI             | Visual database inspection                        |
 | `pnpm inspector`        | Start MCP Inspector                | Debug MCP protocol directly                       |
+| `pnpm storybook`        | Start Storybook dev server         | Develop/preview store components in isolation      |
+| `pnpm verify:list`      | List available Storybook story IDs | See all capturable stories                        |
+| `pnpm verify:story`     | Capture screenshot of a story      | `pnpm verify:story -- <story-id>`                 |
+| `pnpm verify:all`       | Capture screenshots of all stories | Full design verification pass                     |
 
 ### Development Workflow
 

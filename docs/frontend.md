@@ -121,6 +121,51 @@ The `@shared/*` path alias is configured in `tsconfig.json`.
 - Apply `theme` class to root element for light/dark mode support
 - CSS classes scoped per widget in `index.css`
 
+## Storybook (Store Components)
+
+Store components (`store/src/`) are rendered in isolation via Storybook for design verification.
+
+**File Locations**:
+
+| Location | Purpose |
+| --- | --- |
+| `store/.storybook/main.ts` | Storybook config (framework, story globs) |
+| `store/.storybook/preview.tsx` | Global decorators (CSS import, animation disabling) |
+| `store/.storybook/mocks/CartContext.tsx` | `MockCartProvider` for injecting cart state |
+| `store/src/**/*.stories.tsx` | Story files (co-located with components) |
+
+**Writing Stories**:
+
+Each story wraps the component in its own `<MemoryRouter>` + `<MockCartProvider>` decorator (no global router — avoids nested router conflicts with `useParams`):
+
+```tsx
+import type { Meta, StoryObj } from "@storybook/react";
+import { MemoryRouter } from "react-router-dom";
+import { MockCartProvider } from "../../.storybook/mocks/CartContext.js";
+import { MyPage } from "./MyPage.js";
+
+const meta: Meta<typeof MyPage> = {
+  title: "Pages/MyPage",
+  component: MyPage,
+};
+export default meta;
+type Story = StoryObj<typeof MyPage>;
+
+export const Default: Story = {
+  decorators: [
+    (Story) => (
+      <MemoryRouter initialEntries={["/my-page?session=test"]}>
+        <MockCartProvider cart={sampleCart} sessionId="test">
+          <Story />
+        </MockCartProvider>
+      </MemoryRouter>
+    ),
+  ],
+};
+```
+
+**Story ID format**: `<title>--<export>` in kebab-case, e.g. `pages-cartpage--with-items`.
+
 ## Common Commands
 
 | Command          | Description                      |
@@ -128,3 +173,4 @@ The `@shared/*` path alias is configured in `tsconfig.json`.
 | `pnpm dev`       | Start dev server with widget HMR |
 | `pnpm test:unit` | Run component tests              |
 | `pnpm typecheck` | TypeScript validation            |
+| `pnpm storybook` | Start Storybook on port 6006     |

@@ -71,7 +71,8 @@ export type OrderSummary = {
 
 export type OrderApiResponse =
 	| (OrderSummary & { notFound: false })
-	| { notFound: true };
+	| { notFound: true }
+	| { error: string };
 
 export type ProductApiResponse =
 	| (Product & { notFound: false })

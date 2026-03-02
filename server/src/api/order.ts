@@ -86,6 +86,6 @@ export async function orderGetApiHandler(
 		res.json({ ...order, notFound: false });
 	} catch (err) {
 		console.error("orderGetApiHandler failed:", err);
-		res.status(500).json({ notFound: true });
+		res.status(500).json({ error: "internal_error" });
 	}
 }

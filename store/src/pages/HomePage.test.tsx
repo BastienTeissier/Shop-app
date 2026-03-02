@@ -142,18 +142,16 @@ describe("HomePage", () => {
 		expect(mockSearch).toHaveBeenCalledWith("trail shoes");
 	});
 
-	it("shows loading indicator during search", () => {
+	it("shows loading indicator during search", async () => {
+		const user = userEvent.setup();
 		mockRecommendationsState({
 			status: { phase: "searching", message: "Searching..." },
 		});
-		// Need to simulate that a search has happened
-		// We render with products to trigger hasSearched
 		renderHomePage();
 
-		// Simulate a search by clicking a prompt
-		// Instead, let's render with a status that indicates searching
-		// But hasSearched is internal state...
-		// Re-render approach: set products to trigger the grid area
+		await user.click(screen.getByText("Running gear"));
+
+		expect(screen.getByText("Searching...")).toBeInTheDocument();
 	});
 
 	it("renders products in tiered grid when completed", () => {

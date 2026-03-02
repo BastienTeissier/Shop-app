@@ -154,18 +154,18 @@ describe("HomePage", () => {
 		expect(screen.getByText("Searching...")).toBeInTheDocument();
 	});
 
-	it("renders products in tiered grid when completed", () => {
+	it("renders products in tiered grid when completed", async () => {
+		const user = userEvent.setup();
 		mockRecommendationsState({
 			products: SAMPLE_PRODUCTS,
 			status: { phase: "completed", message: "Done" },
 		});
-
-		// We need hasSearched=true, which only happens after search() is called
-		// Let's test by clicking a prompt button first
 		renderHomePage();
 
-		// Initially no grid since hasSearched is false
-		expect(screen.queryByText("Trail Shoe")).not.toBeInTheDocument();
+		await user.click(screen.getByText("Running gear"));
+
+		expect(screen.getByText("Trail Shoe")).toBeInTheDocument();
+		expect(screen.getByText("Essential")).toBeInTheDocument();
 	});
 
 	it("shows 'No products found' for empty completed results", async () => {

@@ -1,10 +1,11 @@
+import type { Mock } from "vitest";
+import { vi } from "vitest";
+
 import type {
 	A2UIMessage,
 	DataModelUpdateMessage,
 	SurfaceUpdateMessage,
 } from "@shared/a2ui-types.js";
-import type { Mock } from "vitest";
-import { vi } from "vitest";
 
 // =============================================================================
 // Mock Types

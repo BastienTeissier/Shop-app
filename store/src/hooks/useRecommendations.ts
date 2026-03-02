@@ -1,3 +1,5 @@
+import { useCallback, useEffect, useRef, useState } from "react";
+
 import type {
 	A2UIMessage,
 	RecommendationDataModel,
@@ -6,7 +8,7 @@ import type {
 } from "@shared/a2ui-types.js";
 import { createInitialDataModel } from "@shared/a2ui-types.js";
 import { applyDataModelUpdate } from "@shared/a2ui-utils.js";
-import { useCallback, useEffect, useRef, useState } from "react";
+
 import { getA2UIStreamUrl, postA2UIEvent } from "../api.js";
 
 export type UseRecommendationsReturn = {

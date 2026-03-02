@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 import { productList } from "../db/products.js";
 import { errorResponse, successResponse } from "./utils.js";
 

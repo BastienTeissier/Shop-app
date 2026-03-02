@@ -1,6 +1,5 @@
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import type { NextFunction, Request, Response } from "express";
-
 import type { McpServer } from "skybridge/server";
 
 export const mcp =

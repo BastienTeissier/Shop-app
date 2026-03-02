@@ -1,6 +1,8 @@
-import { formatPrice } from "@shared/format.js";
 import { type FormEvent, useState } from "react";
 import { useNavigate } from "react-router-dom";
+
+import { formatPrice } from "@shared/format.js";
+
 import { submitOrder } from "../api.js";
 import { useCart } from "../context/CartContext.js";
 

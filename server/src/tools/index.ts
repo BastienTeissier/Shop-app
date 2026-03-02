@@ -9,19 +9,16 @@ export {
 	cartOptions,
 	cartToolOptions,
 } from "./cart.js";
-
 export {
 	cartSummaryHandler,
 	cartSummaryOptions,
 	cartSummaryToolOptions,
 } from "./cart-summary.js";
-
 export {
 	ecomCarouselHandler,
 	ecomCarouselOptions,
 	ecomCarouselToolOptions,
 } from "./ecom-carousel.js";
-
 export {
 	productRecommendationsHandler,
 	productRecommendationsOptions,

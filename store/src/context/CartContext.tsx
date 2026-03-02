@@ -1,4 +1,3 @@
-import type { CartSummary, CartSummaryApiResponse } from "@shared/types.js";
 import {
 	createContext,
 	useCallback,
@@ -9,6 +8,9 @@ import {
 	useState,
 } from "react";
 import { useSearchParams } from "react-router-dom";
+
+import type { CartSummary, CartSummaryApiResponse } from "@shared/types.js";
+
 import {
 	addCartItem,
 	createCart,

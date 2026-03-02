@@ -1,10 +1,12 @@
+import type { Response } from "express";
+
 import type {
 	A2UIMessage,
 	A2UISession,
 	LastRecommendation,
 	RecommendationDataModel,
 } from "@shared/a2ui-types.js";
-import type { Response } from "express";
+
 import { createInitialDataModel } from "../../../shared/a2ui-types.js";
 
 export { createInitialDataModel };

@@ -1,5 +1,7 @@
-import type { ProductTier } from "@shared/a2ui-types.js";
 import { generateText, stepCountIs } from "ai";
+
+import type { ProductTier } from "@shared/a2ui-types.js";
+
 import { getRecommendationModel } from "./openrouter-provider.js";
 import { rankProductsTool, searchProductsTool } from "./tools/index.js";
 

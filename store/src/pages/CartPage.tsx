@@ -1,5 +1,7 @@
-import { formatPrice } from "@shared/format.js";
 import { Link } from "react-router-dom";
+
+import { formatPrice } from "@shared/format.js";
+
 import { useCart } from "../context/CartContext.js";
 
 export function CartPage() {

@@ -1,5 +1,7 @@
 import type { Product as PrismaProduct } from "@prisma/client";
+
 import type { Product } from "@shared/types.js";
+
 import { prisma } from "./client.js";
 
 export type { Product } from "@shared/types.js";

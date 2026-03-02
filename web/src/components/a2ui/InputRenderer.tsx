@@ -1,5 +1,7 @@
-import type { InputComponent } from "@shared/a2ui-types.js";
 import { useCallback, useState } from "react";
+
+import type { InputComponent } from "@shared/a2ui-types.js";
+
 import type { A2UIComponentProps } from "./types.js";
 import { resolveBinding } from "./utils.js";
 

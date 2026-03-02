@@ -3,6 +3,7 @@ import type {
 	TieredListComponent,
 } from "@shared/a2ui-types.js";
 import { groupProductsByTier } from "@shared/components/TieredProductGrid.js";
+
 import { renderComponent } from "./registry.js";
 import type { A2UIComponentProps } from "./types.js";
 import { resolveBinding } from "./utils.js";

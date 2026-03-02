@@ -1,7 +1,9 @@
-import { formatPrice } from "@shared/format.js";
-import type { OrderSummary } from "@shared/types.js";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+
+import { formatPrice } from "@shared/format.js";
+import type { OrderSummary } from "@shared/types.js";
+
 import { fetchOrder } from "../api.js";
 
 export function OrderConfirmationPage() {
@@ -19,7 +21,7 @@ export function OrderConfirmationPage() {
 
 		fetchOrder(reference)
 			.then((res) => {
-				if (res.notFound) {
+				if ("error" in res || res.notFound) {
 					setNotFound(true);
 				} else {
 					setOrder(res);

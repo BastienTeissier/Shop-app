@@ -1,7 +1,9 @@
-import { formatPrice } from "@shared/format.js";
-import type { Product } from "@shared/types.js";
 import { useEffect, useState } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
+
+import { formatPrice } from "@shared/format.js";
+import type { Product } from "@shared/types.js";
+
 import { fetchProduct } from "../api.js";
 import { useCart } from "../context/CartContext.js";
 

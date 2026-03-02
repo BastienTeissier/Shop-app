@@ -1,6 +1,7 @@
-import type { Product } from "@shared/types.js";
 import { tool } from "ai";
 import { z } from "zod";
+
+import type { Product } from "@shared/types.js";
 
 const productSchema = z.object({
 	id: z.number(),

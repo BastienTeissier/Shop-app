@@ -1,5 +1,6 @@
-import type { CartSnapshot } from "@shared/types.js";
 import { z } from "zod";
+
+import type { CartSnapshot } from "@shared/types.js";
 
 // ============================================================================
 // Error Messages

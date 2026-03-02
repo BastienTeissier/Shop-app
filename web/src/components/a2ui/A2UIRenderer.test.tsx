@@ -1,3 +1,7 @@
+import { act, render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
+
 import type {
 	A2UIComponent,
 	A2UIMessage,
@@ -8,9 +12,7 @@ import type {
 	RecommendationProduct,
 	SurfaceUpdateMessage,
 } from "@shared/a2ui-types.js";
-import { act, render, screen, waitFor } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
+
 import { A2UIRenderer } from "./A2UIRenderer.js";
 
 // =============================================================================

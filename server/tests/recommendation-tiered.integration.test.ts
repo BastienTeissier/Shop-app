@@ -1,8 +1,4 @@
 import { PrismaClient } from "@prisma/client";
-import type {
-	DataModelUpdateMessage,
-	RecommendationProduct,
-} from "@shared/a2ui-types.js";
 import type { Request, Response } from "express";
 import {
 	afterAll,
@@ -14,6 +10,12 @@ import {
 	it,
 	vi,
 } from "vitest";
+
+import type {
+	DataModelUpdateMessage,
+	RecommendationProduct,
+} from "@shared/a2ui-types.js";
+
 import {
 	createEventMockContext,
 	createSSEMockContext,

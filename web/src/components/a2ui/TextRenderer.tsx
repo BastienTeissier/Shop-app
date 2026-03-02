@@ -1,4 +1,5 @@
 import type { TextComponent } from "@shared/a2ui-types.js";
+
 import type { A2UIComponentProps } from "./types.js";
 import { resolveBinding } from "./utils.js";
 

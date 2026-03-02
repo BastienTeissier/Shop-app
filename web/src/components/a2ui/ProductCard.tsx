@@ -3,6 +3,7 @@ import type {
 	RecommendationProduct,
 } from "@shared/a2ui-types.js";
 import { ProductCard as SharedProductCard } from "@shared/components/ProductCard.js";
+
 import type { A2UIComponentProps } from "./types.js";
 import { resolveBinding } from "./utils.js";
 

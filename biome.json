@@ -30,7 +30,16 @@
 		"actions": {
 			"source": {
 				"organizeImports": {
-					"level": "on"
+					"level": "on",
+					"options": {
+						"groups": [
+							[":PACKAGE:", "!@shared/**"],
+							":BLANK_LINE:",
+							["@shared/**"],
+							":BLANK_LINE:",
+							":PATH:"
+						]
+					}
 				}
 			}
 		}

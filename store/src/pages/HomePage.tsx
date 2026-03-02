@@ -1,7 +1,9 @@
-import { ProductCard } from "@shared/components/ProductCard.js";
-import { TieredProductGrid } from "@shared/components/TieredProductGrid.js";
 import { type FormEvent, useState } from "react";
 import { useNavigate } from "react-router-dom";
+
+import { ProductCard } from "@shared/components/ProductCard.js";
+import { TieredProductGrid } from "@shared/components/TieredProductGrid.js";
+
 import { useCart } from "../context/CartContext.js";
 import { useRecommendations } from "../hooks/useRecommendations.js";
 

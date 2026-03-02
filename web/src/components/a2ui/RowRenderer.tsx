@@ -1,4 +1,5 @@
 import type { RowComponent } from "@shared/a2ui-types.js";
+
 import { renderComponent } from "./registry.js";
 import type { A2UIComponentProps } from "./types.js";
 

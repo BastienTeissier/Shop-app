@@ -1,5 +1,7 @@
-import type { ProductApiResponse } from "@shared/types.js";
 import type { Request, Response } from "express";
+
+import type { ProductApiResponse } from "@shared/types.js";
+
 import { productGetById } from "../db/products.js";
 
 const NOT_FOUND: ProductApiResponse = { notFound: true };

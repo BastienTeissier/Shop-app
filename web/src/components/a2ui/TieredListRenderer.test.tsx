@@ -1,10 +1,12 @@
+import { render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+
 import type {
 	RecommendationDataModel,
 	RecommendationProduct,
 	TieredListComponent,
 } from "@shared/a2ui-types.js";
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+
 import type { A2UIRendererContext } from "./types.js";
 
 // Mock the registry to avoid circular dependencies

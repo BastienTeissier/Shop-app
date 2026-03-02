@@ -29,6 +29,10 @@ export async function productList(
 	return products;
 }
 
+export async function productGetById(id: number): Promise<Product | null> {
+	return prisma.product.findUnique({ where: { id } });
+}
+
 export async function productListByCategories(
 	categories: string[],
 	limit = 20,

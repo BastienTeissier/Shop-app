@@ -12,6 +12,7 @@ const mockFetchCartSummary = vi.fn();
 const mockUpdateCartItemQuantity = vi.fn();
 const mockRemoveCartItem = vi.fn();
 const mockAddCartItem = vi.fn();
+const mockCreateCart = vi.fn();
 
 vi.mock("../api.js", () => ({
 	fetchCartSummary: (...args: unknown[]) => mockFetchCartSummary(...args),
@@ -19,6 +20,7 @@ vi.mock("../api.js", () => ({
 		mockUpdateCartItemQuantity(...args),
 	removeCartItem: (...args: unknown[]) => mockRemoveCartItem(...args),
 	addCartItem: (...args: unknown[]) => mockAddCartItem(...args),
+	createCart: (...args: unknown[]) => mockCreateCart(...args),
 }));
 
 // ---------------------------------------------------------------------------
@@ -105,6 +107,8 @@ describe("CartContext", () => {
 		mockUpdateCartItemQuantity.mockReset();
 		mockRemoveCartItem.mockReset();
 		mockAddCartItem.mockReset();
+		mockCreateCart.mockReset();
+		localStorage.clear();
 	});
 
 	it("fetches cart on mount when sessionId in URL", async () => {

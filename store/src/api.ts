@@ -1,7 +1,9 @@
 import type {
 	CartSummaryApiResponse,
+	CreateCartResponse,
 	CreateOrderResponse,
 	OrderApiResponse,
+	ProductApiResponse,
 } from "@shared/types.js";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000";
@@ -69,6 +71,54 @@ export async function removeCartItem(
 		throw new Error(`Failed to remove cart item (${res.status})`);
 	}
 	return res.json();
+}
+
+export async function createCart(): Promise<CreateCartResponse> {
+	const res = await fetch(`${API_BASE}/api/cart`, {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+	});
+	if (!res.ok) {
+		throw new Error(`Failed to create cart (${res.status})`);
+	}
+	return res.json();
+}
+
+export async function fetchProduct(
+	id: number,
+): Promise<ProductApiResponse> {
+	const res = await fetch(`${API_BASE}/api/products/${id}`);
+	if (!res.ok && res.status !== 404 && res.status !== 400) {
+		throw new Error(`Failed to fetch product (${res.status})`);
+	}
+	return res.json();
+}
+
+export function getA2UIStreamUrl(
+	sessionId: string,
+	query?: string,
+): string {
+	const url = new URL(`${API_BASE}/api/a2ui/stream`);
+	url.searchParams.set("session", sessionId);
+	if (query) {
+		url.searchParams.set("query", query);
+	}
+	return url.toString();
+}
+
+export async function postA2UIEvent(
+	sessionId: string,
+	action: string,
+	payload: Record<string, unknown>,
+): Promise<void> {
+	const res = await fetch(`${API_BASE}/api/a2ui/event`, {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify({ sessionId, action, payload }),
+	});
+	if (!res.ok) {
+		throw new Error(`Failed to post A2UI event (${res.status})`);
+	}
 }
 
 export async function submitOrder(

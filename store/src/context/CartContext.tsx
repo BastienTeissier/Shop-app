@@ -5,11 +5,13 @@ import {
 	useContext,
 	useEffect,
 	useMemo,
+	useRef,
 	useState,
 } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
 	addCartItem,
+	createCart,
 	fetchCartSummary,
 	removeCartItem,
 	updateCartItemQuantity,
@@ -32,6 +34,7 @@ export type CartContextValue = {
 export const CartContext = createContext<CartContextValue | null>(null);
 
 const ERROR_DISMISS_MS = 3000;
+const STORAGE_KEY = "cart-session-id";
 
 function cartFromResponse(res: CartSummaryApiResponse): CartSummary | null {
 	if (res.notFound) return null;
@@ -42,14 +45,50 @@ function sumLineTotals(items: CartSummary["items"]): number {
 	return items.reduce((sum, item) => sum + item.lineTotal, 0);
 }
 
+function getInitialSessionId(urlSession: string | null): string | null {
+	// URL param takes priority (ChatGPT redirect flow)
+	if (urlSession) {
+		try {
+			localStorage.setItem(STORAGE_KEY, urlSession);
+		} catch {
+			// Ignore localStorage errors
+		}
+		return urlSession;
+	}
+	// Fall back to localStorage (standalone store flow)
+	try {
+		return localStorage.getItem(STORAGE_KEY);
+	} catch {
+		return null;
+	}
+}
+
 export function CartProvider({ children }: { children: React.ReactNode }) {
 	const [searchParams] = useSearchParams();
-	const sessionId = searchParams.get("session");
+	const urlSession = searchParams.get("session");
 
+	const [sessionId, setSessionId] = useState<string | null>(() =>
+		getInitialSessionId(urlSession),
+	);
 	const [cart, setCart] = useState<CartSummary | null>(null);
 	const [loading, setLoading] = useState(!!sessionId);
 	const [notFound, setNotFound] = useState(false);
 	const [error, setError] = useState<string | null>(null);
+
+	// Guard to prevent concurrent cart creation
+	const creatingCartRef = useRef(false);
+
+	// Sync URL param → localStorage on mount
+	useEffect(() => {
+		if (urlSession && urlSession !== sessionId) {
+			setSessionId(urlSession);
+			try {
+				localStorage.setItem(STORAGE_KEY, urlSession);
+			} catch {
+				// Ignore
+			}
+		}
+	}, [urlSession, sessionId]);
 
 	// Auto-dismiss errors
 	useEffect(() => {
@@ -149,17 +188,38 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 	);
 
 	const addItem = useCallback(
-		(productId: number) => {
-			if (!sessionId) return;
+		async (productId: number) => {
+			let currentSessionId = sessionId;
 
-			addCartItem(sessionId, productId)
-				.then((res) => {
-					const serverCart = cartFromResponse(res);
-					if (serverCart) setCart(serverCart);
-				})
-				.catch(() => {
-					setError("Failed to add item");
-				});
+			// Lazy cart creation if no session exists
+			if (!currentSessionId) {
+				if (creatingCartRef.current) return;
+				creatingCartRef.current = true;
+				try {
+					const { sessionId: newSessionId } = await createCart();
+					currentSessionId = newSessionId;
+					setSessionId(newSessionId);
+					setNotFound(false);
+					try {
+						localStorage.setItem(STORAGE_KEY, newSessionId);
+					} catch {
+						// Ignore
+					}
+				} catch {
+					setError("Failed to create cart");
+					creatingCartRef.current = false;
+					return;
+				}
+				creatingCartRef.current = false;
+			}
+
+			try {
+				const res = await addCartItem(currentSessionId, productId);
+				const serverCart = cartFromResponse(res);
+				if (serverCart) setCart(serverCart);
+			} catch {
+				setError("Failed to add item");
+			}
 		},
 		[sessionId],
 	);

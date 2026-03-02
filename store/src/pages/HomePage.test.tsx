@@ -32,9 +32,7 @@ vi.mock("react-router-dom", async () => {
 	};
 });
 
-function mockRecommendationsState(
-	overrides: Record<string, unknown> = {},
-) {
+function mockRecommendationsState(overrides: Record<string, unknown> = {}) {
 	mockUseRecommendations.mockReturnValue({
 		products: [],
 		status: { phase: "idle", message: "Ready to search" },
@@ -166,7 +164,7 @@ describe("HomePage", () => {
 
 		// We need hasSearched=true, which only happens after search() is called
 		// Let's test by clicking a prompt button first
-		const { rerender } = renderHomePage();
+		renderHomePage();
 
 		// Initially no grid since hasSearched is false
 		expect(screen.queryByText("Trail Shoe")).not.toBeInTheDocument();

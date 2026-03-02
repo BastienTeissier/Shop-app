@@ -77,19 +77,13 @@ export function HomePage() {
 			</div>
 
 			{isSearching && (
-				<div className="status-message">
-					{status.message || "Searching..."}
-				</div>
+				<div className="status-message">{status.message || "Searching..."}</div>
 			)}
 
 			{showDisconnected && (
 				<div className="connection-error">
 					<p>{error}</p>
-					<button
-						type="button"
-						className="reconnect-btn"
-						onClick={reconnect}
-					>
+					<button type="button" className="reconnect-btn" onClick={reconnect}>
 						Reconnect
 					</button>
 				</div>

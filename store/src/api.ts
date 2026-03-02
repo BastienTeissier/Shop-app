@@ -84,9 +84,7 @@ export async function createCart(): Promise<CreateCartResponse> {
 	return res.json();
 }
 
-export async function fetchProduct(
-	id: number,
-): Promise<ProductApiResponse> {
+export async function fetchProduct(id: number): Promise<ProductApiResponse> {
 	const res = await fetch(`${API_BASE}/api/products/${id}`);
 	if (!res.ok && res.status !== 404 && res.status !== 400) {
 		throw new Error(`Failed to fetch product (${res.status})`);
@@ -94,10 +92,7 @@ export async function fetchProduct(
 	return res.json();
 }
 
-export function getA2UIStreamUrl(
-	sessionId: string,
-	query?: string,
-): string {
+export function getA2UIStreamUrl(sessionId: string, query?: string): string {
 	const url = new URL(`${API_BASE}/api/a2ui/stream`);
 	url.searchParams.set("session", sessionId);
 	if (query) {

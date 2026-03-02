@@ -39,10 +39,7 @@ const SAMPLE_PRODUCT = {
 	price: 12999,
 };
 
-function renderDetailPage(
-	id = "1",
-	state?: Record<string, unknown> | null,
-) {
+function renderDetailPage(id = "1", state?: Record<string, unknown> | null) {
 	return render(
 		<MemoryRouter
 			initialEntries={[

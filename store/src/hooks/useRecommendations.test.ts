@@ -14,7 +14,8 @@ const mockGetA2UIStreamUrl = vi.fn(
 
 vi.mock("../api.js", () => ({
 	postA2UIEvent: (...args: unknown[]) => mockPostA2UIEvent(...args),
-	getA2UIStreamUrl: (...args: unknown[]) => mockGetA2UIStreamUrl(...args),
+	getA2UIStreamUrl: (sessionId: string, query?: string) =>
+		mockGetA2UIStreamUrl(sessionId, query),
 }));
 
 // ---------------------------------------------------------------------------

@@ -84,11 +84,9 @@ export function useRecommendations(): UseRecommendationsReturn {
 				// Subsequent search — post event over existing session
 				// Reset data model for new search
 				setDataModel(createInitialDataModel());
-				postA2UIEvent(sessionIdRef.current, "search", { query }).catch(
-					() => {
-						setError("Failed to send search");
-					},
-				);
+				postA2UIEvent(sessionIdRef.current, "search", { query }).catch(() => {
+					setError("Failed to send search");
+				});
 			}
 		},
 		[connect],

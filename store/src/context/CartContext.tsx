@@ -66,7 +66,7 @@ function getInitialSessionId(urlSession: string | null): string | null {
 }
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
-	const [searchParams] = useSearchParams();
+	const [searchParams, setSearchParams] = useSearchParams();
 	const urlSession = searchParams.get("session");
 
 	const [sessionId, setSessionId] = useState<string | null>(() =>
@@ -106,6 +106,19 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 		fetchCartSummary(sessionId)
 			.then((res) => {
 				if (res.notFound) {
+					setSessionId(null);
+					try {
+						localStorage.removeItem(STORAGE_KEY);
+					} catch {
+						// Ignore
+					}
+					setSearchParams(
+						(prev) => {
+							prev.delete("session");
+							return prev;
+						},
+						{ replace: true },
+					);
 					setNotFound(true);
 					setCart(null);
 				} else {
@@ -119,7 +132,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 				setNotFound(false);
 			})
 			.finally(() => setLoading(false));
-	}, [sessionId]);
+	}, [sessionId, setSearchParams]);
 
 	const totalQuantity = useMemo(
 		() => (cart ? cart.items.reduce((sum, item) => sum + item.quantity, 0) : 0),

@@ -37,16 +37,28 @@ function TestConsumer() {
 		totalQuantity,
 		setQuantity,
 		removeItem,
+		addItem,
 	} = useCart();
 
 	if (loading) return <div>Loading...</div>;
-	if (notFound) return <div>Not found</div>;
+	if (notFound)
+		return (
+			<div>
+				Not found
+				<button type="button" onClick={() => addItem(1)}>
+					add-1
+				</button>
+			</div>
+		);
 	if (error && !cart) return <div>Error: {error}</div>;
 
 	return (
 		<div>
 			{error && <div data-testid="error">{error}</div>}
 			<div data-testid="total">{totalQuantity}</div>
+			<button type="button" onClick={() => addItem(1)}>
+				add-1
+			</button>
 			{cart?.items.map((item) => (
 				<div key={item.productId} data-testid={`item-${item.productId}`}>
 					<span data-testid={`qty-${item.productId}`}>{item.quantity}</span>
@@ -139,6 +151,10 @@ describe("CartContext", () => {
 
 		await waitFor(() => {
 			expect(screen.getByText("Not found")).toBeInTheDocument();
+		});
+
+		await waitFor(() => {
+			expect(localStorage.getItem("cart-session-id")).toBeNull();
 		});
 	});
 
@@ -289,5 +305,66 @@ describe("CartContext", () => {
 		expect(screen.getByTestId("error")).toHaveTextContent(
 			"Failed to remove item",
 		);
+	});
+
+	it("clears sessionId, localStorage, and URL param when fetchCartSummary returns notFound", async () => {
+		mockFetchCartSummary.mockResolvedValue({
+			notFound: true,
+			items: [],
+			subtotal: 0,
+		});
+
+		renderWithProvider("?session=invalid-uuid");
+
+		await waitFor(() => {
+			expect(screen.getByText("Not found")).toBeInTheDocument();
+		});
+
+		// localStorage cleared (needs waitFor — setSearchParams settles over multiple renders)
+		await waitFor(() => {
+			expect(localStorage.getItem("cart-session-id")).toBeNull();
+		});
+	});
+
+	it("addItem creates fresh cart after invalid session recovery", async () => {
+		const user = userEvent.setup();
+		mockFetchCartSummary.mockResolvedValue({
+			notFound: true,
+			items: [],
+			subtotal: 0,
+		});
+		mockCreateCart.mockResolvedValue({ sessionId: "new-session-id" });
+		mockAddCartItem.mockResolvedValue({
+			notFound: false,
+			items: [
+				{
+					productId: 1,
+					title: "Shoes",
+					imageUrl: "https://example.com/shoes.png",
+					unitPriceSnapshot: 9999,
+					quantity: 1,
+					lineTotal: 9999,
+				},
+			],
+			subtotal: 9999,
+		});
+
+		renderWithProvider("?session=invalid-uuid");
+
+		// Wait for notFound state
+		await waitFor(() => {
+			expect(screen.getByText("Not found")).toBeInTheDocument();
+		});
+
+		// Click add-1 button to trigger lazy cart creation
+		await user.click(screen.getByText("add-1"));
+
+		await waitFor(() => {
+			expect(mockCreateCart).toHaveBeenCalled();
+		});
+
+		await waitFor(() => {
+			expect(mockAddCartItem).toHaveBeenCalledWith("new-session-id", 1);
+		});
 	});
 });

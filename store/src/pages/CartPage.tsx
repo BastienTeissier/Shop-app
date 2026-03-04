@@ -8,7 +8,8 @@ export function CartPage() {
 	const { cart, sessionId, loading, notFound, error, setQuantity, removeItem } =
 		useCart();
 
-	const showEmpty = !loading && !notFound && !error && cart?.items.length === 0;
+	const showEmpty =
+		!loading && !notFound && !error && (!cart || cart.items.length === 0);
 
 	return (
 		<div className="page-container">
@@ -18,6 +19,7 @@ export function CartPage() {
 			{notFound && (
 				<div className="message">
 					<p>Cart not found</p>
+					<Link to="/">Browse products</Link>
 				</div>
 			)}
 			{error && !cart && (
@@ -28,6 +30,7 @@ export function CartPage() {
 			{showEmpty && (
 				<div className="message">
 					<p>Your cart is empty</p>
+					<Link to="/">Browse products</Link>
 				</div>
 			)}
 			{cart && cart.items.length > 0 && (

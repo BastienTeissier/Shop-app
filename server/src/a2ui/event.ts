@@ -84,7 +84,7 @@ export async function a2uiEventHandler(
 
 		res.json({ success: true });
 	} catch (error) {
-		console.error(`Error handling action ${action.action}:`, error);
+		console.error("Error handling action %s:", action.action, error);
 		res.status(500).json({ error: "Internal server error" });
 	}
 }

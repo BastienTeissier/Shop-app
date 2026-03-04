@@ -1,4 +1,5 @@
 import type { RecommendationDataModel } from "@shared/a2ui-types.js";
+import { parseSafePath } from "@shared/a2ui-utils.js";
 
 /**
  * Resolve a binding path to a value in the data model.
@@ -15,7 +16,8 @@ export function resolveBinding(
 	}
 
 	// Handle paths like "/products" or "/status/message"
-	const parts = binding.split("/").filter(Boolean);
+	const parts = parseSafePath(binding);
+	if (!parts) return undefined;
 	let current: unknown = dataModel;
 
 	for (const part of parts) {

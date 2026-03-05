@@ -25,6 +25,6 @@ export async function productGetApiHandler(
 		res.json({ ...product, notFound: false } satisfies ProductApiResponse);
 	} catch (err) {
 		console.error("productGetApiHandler failed:", err);
-		res.status(500).json(NOT_FOUND);
+		res.status(500).json({ notFound: false, error: "internal_error" });
 	}
 }

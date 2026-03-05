@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { MemoryRouter } from "react-router-dom";
+
 import { MockCartProvider } from "../../.storybook/mocks/CartContext.js";
 import { CheckoutPage } from "./CheckoutPage.js";
 
@@ -70,9 +71,6 @@ export const Loading: Story = {
 };
 
 export const SubmitError: Story = {
-	args: {
-		initialError: "Something went wrong. Please try again.",
-	},
 	decorators: [
 		(Story) => (
 			<MemoryRouter initialEntries={["/checkout?session=test"]}>

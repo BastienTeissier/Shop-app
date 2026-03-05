@@ -71,7 +71,16 @@ export type OrderSummary = {
 
 export type OrderApiResponse =
 	| (OrderSummary & { notFound: false })
+	| { notFound: true }
+	| { error: string };
+
+export type ProductApiResponse =
+	| (Product & { notFound: false })
 	| { notFound: true };
+
+export type CreateCartResponse = {
+	sessionId: string;
+};
 
 export type CreateOrderRequest = {
 	sessionId: string;

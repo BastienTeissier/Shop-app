@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import { z } from "zod";
+
 import { cartGetSummary } from "../db/cart.js";
 import { orderCreate, orderGetByReference } from "../db/order.js";
 
@@ -86,6 +87,6 @@ export async function orderGetApiHandler(
 		res.json({ ...order, notFound: false });
 	} catch (err) {
 		console.error("orderGetApiHandler failed:", err);
-		res.status(500).json({ notFound: true });
+		res.status(500).json({ error: "internal_error" });
 	}
 }

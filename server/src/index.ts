@@ -1,14 +1,17 @@
 import express, { type Express } from "express";
 import { widgetsDevServer } from "skybridge/server";
 import type { ViteDevServer } from "vite";
+
 import { a2uiEventHandler, a2uiStreamHandler } from "./a2ui/index.js";
 import {
 	cartAddItemApiHandler,
+	cartCreateApiHandler,
 	cartRemoveItemApiHandler,
 	cartSummaryApiHandler,
 	cartUpdateItemApiHandler,
 	orderCreateApiHandler,
 	orderGetApiHandler,
+	productGetApiHandler,
 } from "./api/index.js";
 import { mcp } from "./middleware.js";
 import server from "./server.js";
@@ -34,7 +37,11 @@ app.use((req, res, next) => {
 app.get("/api/a2ui/stream", a2uiStreamHandler);
 app.post("/api/a2ui/event", a2uiEventHandler);
 
+// Product REST endpoints
+app.get("/api/products/:id", productGetApiHandler);
+
 // Cart REST endpoints for standalone storefront
+app.post("/api/cart", cartCreateApiHandler);
 app.get("/api/cart/:sessionId/summary", cartSummaryApiHandler);
 app.post("/api/cart/:sessionId/items", cartAddItemApiHandler);
 app.put("/api/cart/:sessionId/items/:productId", cartUpdateItemApiHandler);

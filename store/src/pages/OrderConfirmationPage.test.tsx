@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { OrderConfirmationPage } from "./OrderConfirmationPage.js";
 
 // ---------------------------------------------------------------------------
@@ -10,7 +11,7 @@ import { OrderConfirmationPage } from "./OrderConfirmationPage.js";
 const mockFetchOrder = vi.fn();
 
 vi.mock("../api.js", () => ({
-	fetchOrder: (...args: unknown[]) => mockFetchOrder(...args),
+	orderFetch: (...args: unknown[]) => mockFetchOrder(...args),
 }));
 
 // ---------------------------------------------------------------------------

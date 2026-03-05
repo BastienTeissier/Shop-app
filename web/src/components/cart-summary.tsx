@@ -1,6 +1,7 @@
 import "@/index.css";
 
 import { useLayout } from "skybridge/web";
+
 import { useToolInfo } from "../helpers.js";
 
 const formatPrice = (priceCents: number) => `$${(priceCents / 100).toFixed(2)}`;

@@ -1,5 +1,7 @@
-import type { RefineInputComponent } from "@shared/a2ui-types.js";
 import { useCallback, useState } from "react";
+
+import type { RefineInputComponent } from "@shared/a2ui-types.js";
+
 import type { A2UIComponentProps } from "./types.js";
 
 export function RefineInput({

@@ -1,20 +1,12 @@
 import type {
-	ProductTier,
 	RecommendationProduct,
 	TieredListComponent,
 } from "@shared/a2ui-types.js";
+import { groupProductsByTier } from "@shared/components/TieredProductGrid.js";
+
 import { renderComponent } from "./registry.js";
 import type { A2UIComponentProps } from "./types.js";
 import { resolveBinding } from "./utils.js";
-
-const TIER_CONFIG: Record<
-	ProductTier,
-	{ label: string; icon: string; order: number }
-> = {
-	essential: { label: "Essential", icon: "⭐", order: 0 },
-	recommended: { label: "Recommended", icon: "👍", order: 1 },
-	optional: { label: "Optional", icon: "💡", order: 2 },
-};
 
 export function TieredListRenderer({
 	component: baseComponent,
@@ -49,26 +41,21 @@ export function TieredListRenderer({
 		);
 	}
 
-	// Group products by tier
-	const groupedByTier = groupProductsByTier(items);
-
-	// Get tiers that have products, sorted by order
-	const tiersWithProducts = (Object.keys(groupedByTier) as ProductTier[]).sort(
-		(a, b) => TIER_CONFIG[a].order - TIER_CONFIG[b].order,
-	);
+	// Group products by tier using shared utility
+	const tierGroups = groupProductsByTier(items);
 
 	return (
 		<div id={component.id} className={component.className ?? "a2ui-list"}>
-			{tiersWithProducts.map((tier) => (
-				<div key={tier} className={`tier-section tier-${tier}`}>
+			{tierGroups.map((group) => (
+				<div key={group.tier} className={`tier-section tier-${group.tier}`}>
 					<div className="tier-header">
-						<span className="tier-icon">{TIER_CONFIG[tier].icon}</span>
-						<span className="tier-label">{TIER_CONFIG[tier].label}</span>
-						<span className="tier-count">({groupedByTier[tier].length})</span>
+						<span className="tier-icon">{group.icon}</span>
+						<span className="tier-label">{group.label}</span>
+						<span className="tier-count">({group.products.length})</span>
 					</div>
 					<div className="tier-products">
-						{groupedByTier[tier].map((item) => (
-							<div key={getItemKey(item)} className="a2ui-list-item">
+						{group.products.map((item) => (
+							<div key={item.id} className="a2ui-list-item">
 								{component.template.map((templateComponent) =>
 									renderComponent(templateComponent, context, item),
 								)}
@@ -79,32 +66,4 @@ export function TieredListRenderer({
 			))}
 		</div>
 	);
-}
-
-function groupProductsByTier(
-	products: RecommendationProduct[],
-): Record<ProductTier, RecommendationProduct[]> {
-	const groups: Record<ProductTier, RecommendationProduct[]> = {
-		essential: [],
-		recommended: [],
-		optional: [],
-	};
-
-	for (const product of products) {
-		const tier = product.tier ?? "recommended"; // Default to recommended if no tier
-		groups[tier].push(product);
-	}
-
-	// Remove empty groups
-	for (const tier of Object.keys(groups) as ProductTier[]) {
-		if (groups[tier].length === 0) {
-			delete groups[tier];
-		}
-	}
-
-	return groups;
-}
-
-function getItemKey(item: RecommendationProduct): string | number {
-	return item.id;
 }

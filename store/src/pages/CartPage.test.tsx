@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { CartPage } from "./CartPage.js";
 
 // ---------------------------------------------------------------------------
@@ -149,6 +150,7 @@ describe("CartPage", () => {
 		mockCartState({ notFound: true, cart: null });
 		const { unmount: u2 } = renderCartPage();
 		expect(screen.getByText("Cart not found")).toBeInTheDocument();
+		expect(screen.getByText("Browse products")).toBeInTheDocument();
 		u2();
 
 		// Error without cart
@@ -161,7 +163,32 @@ describe("CartPage", () => {
 
 		// Empty cart
 		mockCartState({ cart: { items: [], subtotal: 0 } });
+		const { unmount: u4 } = renderCartPage();
+		expect(screen.getByText("Your cart is empty")).toBeInTheDocument();
+		u4();
+
+		// Null cart (no session)
+		mockCartState({ cart: null });
 		renderCartPage();
 		expect(screen.getByText("Your cart is empty")).toBeInTheDocument();
+	});
+
+	it('renders "Browse products" link in notFound state', () => {
+		mockCartState({ notFound: true, cart: null });
+		renderCartPage();
+
+		const link = screen.getByText("Browse products");
+		expect(link).toBeInTheDocument();
+		expect(link).toHaveAttribute("href", "/");
+	});
+
+	it('renders "Your cart is empty" with browse link when no session', () => {
+		mockCartState({ cart: null, sessionId: null });
+		renderCartPage();
+
+		expect(screen.getByText("Your cart is empty")).toBeInTheDocument();
+		const link = screen.getByText("Browse products");
+		expect(link).toBeInTheDocument();
+		expect(link).toHaveAttribute("href", "/");
 	});
 });

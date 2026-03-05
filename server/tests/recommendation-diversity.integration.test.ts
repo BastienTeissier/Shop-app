@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+
 import { applyDiversityFilter } from "../src/a2ui/handlers/recommend.js";
 
 describe("Diversity Filter", () => {

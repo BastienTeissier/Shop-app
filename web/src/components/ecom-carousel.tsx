@@ -1,7 +1,5 @@
 import "@/index.css";
 
-import { formatPrice } from "@shared/format.js";
-import type { CartSnapshot, CartWidgetState, Product } from "@shared/types.js";
 import { useEffect, useState } from "react";
 import {
 	useLayout,
@@ -10,6 +8,10 @@ import {
 	useUser,
 	useWidgetState,
 } from "skybridge/web";
+
+import { formatPrice } from "@shared/format.js";
+import type { CartSnapshot, CartWidgetState, Product } from "@shared/types.js";
+
 import { useCallTool, useToolInfo } from "../helpers.js";
 
 const translations: Record<string, Record<string, string>> = {

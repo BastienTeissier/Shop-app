@@ -1,4 +1,5 @@
 import type { A2UIComponent } from "@shared/a2ui-types.js";
+
 import { ButtonRenderer } from "./ButtonRenderer.js";
 import { ColumnRenderer } from "./ColumnRenderer.js";
 import { ImageRenderer } from "./ImageRenderer.js";

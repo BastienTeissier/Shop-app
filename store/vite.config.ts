@@ -1,8 +1,9 @@
 /// <reference types="vitest" />
 
-import path from "node:path";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
+
+import path from "node:path";
 
 export default defineConfig({
 	plugins: [react()],
@@ -17,5 +18,9 @@ export default defineConfig({
 	test: {
 		environment: "happy-dom",
 		setupFiles: ["./src/test/setup.ts"],
+		include: [
+			"./src/**/*.{test,spec}.{ts,tsx}",
+			"../shared/**/*.{test,spec}.{ts,tsx}",
+		],
 	},
 });

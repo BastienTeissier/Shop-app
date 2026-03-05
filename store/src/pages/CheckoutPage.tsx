@@ -1,19 +1,19 @@
-import { formatPrice } from "@shared/format.js";
 import { type FormEvent, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { submitOrder } from "../api.js";
+
+import { formatPrice } from "@shared/format.js";
+
+import { orderSubmit } from "../api.js";
 import { useCart } from "../context/CartContext.js";
 
-export function CheckoutPage({ initialError }: { initialError?: string } = {}) {
+export function CheckoutPage() {
 	const { cart, sessionId, loading, notFound, clearCart } = useCart();
 	const navigate = useNavigate();
 
 	const [name, setName] = useState("");
 	const [email, setEmail] = useState("");
 	const [submitting, setSubmitting] = useState(false);
-	const [submitError, setSubmitError] = useState<string | null>(
-		initialError ?? null,
-	);
+	const [submitError, setSubmitError] = useState<string | null>(null);
 
 	const showEmpty =
 		!loading && (!cart || cart.items.length === 0 || notFound || !sessionId);
@@ -29,7 +29,7 @@ export function CheckoutPage({ initialError }: { initialError?: string } = {}) {
 		setSubmitError(null);
 
 		try {
-			const { reference } = await submitOrder(
+			const { reference } = await orderSubmit(
 				sessionId,
 				name.trim(),
 				email.trim(),

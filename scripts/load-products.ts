@@ -1,7 +1,8 @@
+import { PrismaClient } from "@prisma/client";
+
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { PrismaClient } from "@prisma/client";
 
 type ProductInput = {
 	title: string;

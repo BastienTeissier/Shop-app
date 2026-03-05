@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { CheckoutPage } from "./CheckoutPage.js";
 
 // ---------------------------------------------------------------------------
@@ -18,7 +19,7 @@ vi.mock("../context/CartContext.js", () => ({
 }));
 
 vi.mock("../api.js", () => ({
-	submitOrder: (...args: unknown[]) => mockSubmitOrder(...args),
+	orderSubmit: (...args: unknown[]) => mockSubmitOrder(...args),
 }));
 
 vi.mock("react-router-dom", async () => {

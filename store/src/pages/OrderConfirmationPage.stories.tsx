@@ -1,6 +1,8 @@
-import type { OrderApiResponse } from "@shared/types.js";
 import type { Meta, StoryObj } from "@storybook/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
+
+import type { OrderApiResponse } from "@shared/types.js";
+
 import { MockCartProvider } from "../../.storybook/mocks/CartContext.js";
 import { OrderConfirmationPage } from "./OrderConfirmationPage.js";
 

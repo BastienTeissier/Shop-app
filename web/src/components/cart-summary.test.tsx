@@ -1,6 +1,8 @@
-import type { CartSummaryItem } from "@shared/types.js";
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import type { CartSummaryItem } from "@shared/types.js";
+
 import { makeCartSummaryItem } from "../test/factories";
 import { CartSummary } from "./cart-summary";
 

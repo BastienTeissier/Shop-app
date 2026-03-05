@@ -1,6 +1,8 @@
-import type { RecommendationDataModel } from "@shared/a2ui-types.js";
 import type { Request, Response } from "express";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
+
+import type { RecommendationDataModel } from "@shared/a2ui-types.js";
+
 import {
 	createSSEMockContext,
 	isDataModelUpdate,

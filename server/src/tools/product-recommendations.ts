@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 import { successResponse } from "./utils.js";
 
 const APP_BASE_URL = process.env.APP_BASE_URL ?? "";

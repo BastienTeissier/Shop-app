@@ -1,10 +1,12 @@
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
+
 import type {
 	RecommendationDataModel,
 	RefineInputComponent,
 } from "@shared/a2ui-types.js";
-import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
+
 import { RefineInput } from "./RefineInput.js";
 import type { A2UIRendererContext } from "./types.js";
 

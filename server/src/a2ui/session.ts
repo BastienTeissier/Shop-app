@@ -1,11 +1,14 @@
+import type { Response } from "express";
+
 import type {
 	A2UIMessage,
 	A2UISession,
 	LastRecommendation,
 	RecommendationDataModel,
 } from "@shared/a2ui-types.js";
-import type { Response } from "express";
+
 import { createInitialDataModel } from "../../../shared/a2ui-types.js";
+import { parseSafePath } from "../../../shared/a2ui-utils.js";
 
 export { createInitialDataModel };
 
@@ -149,8 +152,8 @@ export function updateDataModelAtPath(
 	path: string,
 	value: unknown,
 ): void {
-	const parts = path.split("/").filter(Boolean);
-	if (parts.length === 0) return;
+	const parts = parseSafePath(path);
+	if (!parts || parts.length === 0) return;
 
 	let current: Record<string, unknown> = dataModel;
 	for (let i = 0; i < parts.length - 1; i++) {
@@ -169,7 +172,8 @@ export function getDataModelAtPath(
 	dataModel: RecommendationDataModel,
 	path: string,
 ): unknown {
-	const parts = path.split("/").filter(Boolean);
+	const parts = parseSafePath(path);
+	if (!parts) return undefined;
 	let current: unknown = dataModel;
 
 	for (const part of parts) {

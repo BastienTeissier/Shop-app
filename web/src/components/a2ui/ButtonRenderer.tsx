@@ -1,5 +1,7 @@
-import type { ButtonComponent } from "@shared/a2ui-types.js";
 import { useState } from "react";
+
+import type { ButtonComponent } from "@shared/a2ui-types.js";
+
 import type { A2UIComponentProps } from "./types.js";
 
 export function ButtonRenderer({

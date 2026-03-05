@@ -1,5 +1,7 @@
 import type { Product as PrismaProduct } from "@prisma/client";
+
 import type { Product } from "@shared/types.js";
+
 import { prisma } from "./client.js";
 
 export type { Product } from "@shared/types.js";
@@ -27,6 +29,10 @@ export async function productList(
 	});
 
 	return products;
+}
+
+export async function productGetById(id: number): Promise<Product | null> {
+	return prisma.product.findUnique({ where: { id } });
 }
 
 export async function productListByCategories(

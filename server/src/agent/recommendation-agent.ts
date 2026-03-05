@@ -63,6 +63,7 @@ export type RefinementContext = {
 export async function runRecommendationAgent(
 	query: string,
 	refinementContext?: RefinementContext,
+	options?: { abortSignal?: AbortSignal },
 ): Promise<RecommendationResult> {
 	const model = getRecommendationModel();
 
@@ -127,6 +128,7 @@ Return your final response as JSON in this exact format (no markdown code blocks
 		},
 		stopWhen: stepCountIs(5), // Allow up to 5 tool call steps
 		prompt: userPrompt,
+		abortSignal: options?.abortSignal,
 	});
 
 	// Parse the agent's response

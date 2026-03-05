@@ -1,11 +1,4 @@
-import {
-	afterEach,
-	beforeEach,
-	describe,
-	expect,
-	it,
-	vi,
-} from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock individual agent modules
 const mockRunQueryFormatter = vi.fn();
@@ -42,7 +35,17 @@ describe("Search Pipeline Orchestrator", () => {
 			});
 
 			mockRunRecommendationAgent.mockResolvedValue({
-				products: [{ id: 1, title: "Shoe", description: "", imageUrl: "", price: 1000, highlights: [], reasonWhy: [] }],
+				products: [
+					{
+						id: 1,
+						title: "Shoe",
+						description: "",
+						imageUrl: "",
+						price: 1000,
+						highlights: [],
+						reasonWhy: [],
+					},
+				],
 				summary: "Found shoes",
 			});
 
@@ -61,7 +64,17 @@ describe("Search Pipeline Orchestrator", () => {
 			mockRunQueryFormatter.mockRejectedValue(new Error("LLM timeout"));
 
 			mockRunRecommendationAgent.mockResolvedValue({
-				products: [{ id: 1, title: "Shoe", description: "", imageUrl: "", price: 1000, highlights: [], reasonWhy: [] }],
+				products: [
+					{
+						id: 1,
+						title: "Shoe",
+						description: "",
+						imageUrl: "",
+						price: 1000,
+						highlights: [],
+						reasonWhy: [],
+					},
+				],
 				summary: "Found shoes",
 			});
 
@@ -140,7 +153,15 @@ describe("Search Pipeline Orchestrator", () => {
 			const refinementContext = {
 				previousQuery: "ski gear",
 				previousProducts: [
-					{ id: 1, title: "Jacket", description: "", imageUrl: "", price: 20000, highlights: [], reasonWhy: [] },
+					{
+						id: 1,
+						title: "Jacket",
+						description: "",
+						imageUrl: "",
+						price: 20000,
+						highlights: [],
+						reasonWhy: [],
+					},
 				],
 			};
 
@@ -172,10 +193,9 @@ describe("Search Pipeline Orchestrator", () => {
 
 			await runSearchPipeline("test", { abortSignal: controller.signal });
 
-			expect(mockRunQueryFormatter).toHaveBeenCalledWith(
-				"test",
-				{ abortSignal: controller.signal },
-			);
+			expect(mockRunQueryFormatter).toHaveBeenCalledWith("test", {
+				abortSignal: controller.signal,
+			});
 		});
 	});
 
@@ -217,7 +237,17 @@ describe("Search Pipeline Orchestrator", () => {
 			});
 
 			mockRunRecommendationAgent.mockResolvedValue({
-				products: [{ id: 1, title: "P", description: "", imageUrl: "", price: 100, highlights: [], reasonWhy: [] }],
+				products: [
+					{
+						id: 1,
+						title: "P",
+						description: "",
+						imageUrl: "",
+						price: 100,
+						highlights: [],
+						reasonWhy: [],
+					},
+				],
 				summary: "Found 1",
 			});
 
@@ -230,7 +260,7 @@ describe("Search Pipeline Orchestrator", () => {
 			});
 
 			expect(logCall).toBeDefined();
-			const logged = JSON.parse(logCall![0] as string);
+			const logged = JSON.parse(logCall?.[0] as string);
 			expect(logged.rawQuery).toBe("test query");
 			expect(logged.formattedQuery).toBe("formatted test");
 			expect(logged.productsCount).toBe(1);

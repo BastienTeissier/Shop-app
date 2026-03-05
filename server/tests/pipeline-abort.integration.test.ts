@@ -78,10 +78,25 @@ describe("Pipeline Abort Integration", () => {
 			const sessionId = crypto.randomUUID();
 			let queryAAborted = false;
 
-			// Mock pipeline for query A: stays pending until aborted
+			// Mock #1: auto-trigger from SSE connect (stays pending, will be aborted by query A)
 			mockRunSearchPipeline.mockImplementationOnce(
 				(_query: string, options?: { abortSignal?: AbortSignal }) => {
-					return new Promise((resolve, reject) => {
+					return new Promise((_resolve, reject) => {
+						if (options?.abortSignal) {
+							options.abortSignal.addEventListener("abort", () => {
+								const error = new Error("Aborted");
+								error.name = "AbortError";
+								reject(error);
+							});
+						}
+					});
+				},
+			);
+
+			// Mock #2: query A — stays pending until aborted by query B
+			mockRunSearchPipeline.mockImplementationOnce(
+				(_query: string, options?: { abortSignal?: AbortSignal }) => {
+					return new Promise((_resolve, reject) => {
 						if (options?.abortSignal) {
 							options.abortSignal.addEventListener("abort", () => {
 								queryAAborted = true;
@@ -94,7 +109,7 @@ describe("Pipeline Abort Integration", () => {
 				},
 			);
 
-			// Mock pipeline for query B: resolves immediately
+			// Mock #3: query B — resolves immediately
 			mockRunSearchPipeline.mockImplementationOnce(() =>
 				Promise.resolve({
 					products: [
@@ -113,7 +128,7 @@ describe("Pipeline Abort Integration", () => {
 				}),
 			);
 
-			// Connect SSE client
+			// Connect SSE client (fires auto-trigger, consumes mock #1)
 			const sseCtx = createSSEMockContext({ session: sessionId });
 			a2uiStreamHandler(
 				sseCtx.req as unknown as Request,
@@ -125,20 +140,20 @@ describe("Pipeline Abort Integration", () => {
 
 			const initialMessageCount = sseCtx.messages.length;
 
-			// POST search action "query A"
+			// POST search action "query A" (aborts auto-trigger, consumes mock #2)
 			const eventCtxA = createEventMockContext({
 				sessionId,
 				action: "search",
 				payload: { query: "query A" },
 			});
 
-			// Don't await — it will stay pending
+			// Don't await — it will stay pending until query B aborts it
 			const promiseA = a2uiEventHandler(
 				eventCtxA.req as unknown as Request,
 				eventCtxA.res as unknown as Response,
 			);
 
-			// POST search action "query B" immediately
+			// POST search action "query B" immediately (aborts query A, consumes mock #3)
 			const eventCtxB = createEventMockContext({
 				sessionId,
 				action: "search",
@@ -176,9 +191,9 @@ describe("Pipeline Abort Integration", () => {
 
 			const lastProducts = productsUpdates[productsUpdates.length - 1];
 			expect(lastProducts).toBeDefined();
-			expect(
-				(lastProducts.value as Array<{ title: string }>)[0].title,
-			).toBe("Test Product");
+			expect((lastProducts.value as Array<{ title: string }>)[0].title).toBe(
+				"Test Product",
+			);
 
 			sseCtx.triggerClose();
 		});

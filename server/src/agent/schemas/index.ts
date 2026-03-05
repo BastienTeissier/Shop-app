@@ -1,1 +1,4 @@
-export { FormattedQuerySchema, type FormattedQuery } from "./formatted-query.js";
+export {
+	type FormattedQuery,
+	FormattedQuerySchema,
+} from "./formatted-query.js";

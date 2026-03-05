@@ -47,11 +47,9 @@ export async function runSearchPipeline(
 
 	// Step 2: Run recommendation agent
 	const recommenderStart = performance.now();
-	const result = await runRecommendationAgent(
-		queryToUse,
-		refinementContext,
-		{ abortSignal },
-	);
+	const result = await runRecommendationAgent(queryToUse, refinementContext, {
+		abortSignal,
+	});
 	const recommenderMs = Math.round(performance.now() - recommenderStart);
 
 	const timings = { formatterMs, recommenderMs };

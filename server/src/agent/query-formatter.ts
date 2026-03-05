@@ -1,7 +1,7 @@
 import { generateObject } from "ai";
 
 import { getRecommendationModel } from "./openrouter-provider.js";
-import { FormattedQuerySchema, type FormattedQuery } from "./schemas/index.js";
+import { type FormattedQuery, FormattedQuerySchema } from "./schemas/index.js";
 
 const SYSTEM_PROMPT = `You are a query formatter for a sports equipment store recommendation engine.
 

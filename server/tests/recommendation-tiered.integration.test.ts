@@ -22,10 +22,10 @@ import {
 	isDataModelUpdate,
 } from "./helpers/a2ui-mocks.js";
 
-// Mock the recommendation agent before any imports
-const mockRunRecommendationAgent = vi.fn();
+// Mock the search pipeline before any imports
+const mockRunSearchPipeline = vi.fn();
 vi.mock("../src/agent/index.js", () => ({
-	runRecommendationAgent: mockRunRecommendationAgent,
+	runSearchPipeline: mockRunSearchPipeline,
 }));
 
 describe("Tiered Recommendations Integration", () => {
@@ -91,7 +91,7 @@ describe("Tiered Recommendations Integration", () => {
 	});
 
 	beforeEach(() => {
-		mockRunRecommendationAgent.mockReset();
+		mockRunSearchPipeline.mockReset();
 	});
 
 	afterEach(() => {
@@ -110,7 +110,7 @@ describe("Tiered Recommendations Integration", () => {
 			const sessionId = crypto.randomUUID();
 
 			// Mock agent to return products with tier field
-			mockRunRecommendationAgent.mockResolvedValue({
+			mockRunSearchPipeline.mockResolvedValue({
 				products: [
 					{
 						id: skiBootsId,
@@ -144,6 +144,7 @@ describe("Tiered Recommendations Integration", () => {
 					},
 				],
 				summary: "Gear for skiing",
+				timings: { formatterMs: 10, recommenderMs: 20 },
 			});
 
 			// Connect SSE client
@@ -203,7 +204,7 @@ describe("Tiered Recommendations Integration", () => {
 			const sessionId = crypto.randomUUID();
 
 			// Mock agent for initial search
-			mockRunRecommendationAgent.mockResolvedValueOnce({
+			mockRunSearchPipeline.mockResolvedValueOnce({
 				products: [
 					{
 						id: skiBootsId,
@@ -227,6 +228,7 @@ describe("Tiered Recommendations Integration", () => {
 					},
 				],
 				summary: "Ski gear",
+				timings: { formatterMs: 10, recommenderMs: 20 },
 			});
 
 			// Connect SSE client
@@ -251,7 +253,7 @@ describe("Tiered Recommendations Integration", () => {
 			expect(searchCtx.responseBody()).toEqual({ success: true });
 
 			// Mock agent for refinement - exclude jacket
-			mockRunRecommendationAgent.mockResolvedValueOnce({
+			mockRunSearchPipeline.mockResolvedValueOnce({
 				products: [
 					{
 						id: skiBootsId,
@@ -265,6 +267,7 @@ describe("Tiered Recommendations Integration", () => {
 					},
 				],
 				summary: "Refined gear without jacket",
+				timings: { formatterMs: 10, recommenderMs: 20 },
 			});
 
 			const initialCount = sseCtx.messages.length;
@@ -283,12 +286,15 @@ describe("Tiered Recommendations Integration", () => {
 
 			expect(refineCtx.responseBody()).toEqual({ success: true });
 
-			// Verify agent was called with refinement context
-			expect(mockRunRecommendationAgent).toHaveBeenLastCalledWith(
+			// Verify pipeline was called with refinement context
+			expect(mockRunSearchPipeline).toHaveBeenLastCalledWith(
 				"I already have a jacket",
 				expect.objectContaining({
-					previousQuery: "skiing gear",
-					previousProducts: expect.any(Array),
+					refinementContext: expect.objectContaining({
+						previousQuery: "skiing gear",
+						previousProducts: expect.any(Array),
+					}),
+					abortSignal: expect.any(AbortSignal),
 				}),
 			);
 
@@ -350,7 +356,7 @@ describe("Tiered Recommendations Integration", () => {
 			);
 
 			// Verify agent was NOT called
-			expect(mockRunRecommendationAgent).not.toHaveBeenCalled();
+			expect(mockRunSearchPipeline).not.toHaveBeenCalled();
 
 			sseCtx.triggerClose();
 		});
@@ -361,7 +367,7 @@ describe("Tiered Recommendations Integration", () => {
 			const sessionId = crypto.randomUUID();
 
 			// Mock agent to return products only in essential tier
-			mockRunRecommendationAgent.mockResolvedValue({
+			mockRunSearchPipeline.mockResolvedValue({
 				products: [
 					{
 						id: skiBootsId,
@@ -375,6 +381,7 @@ describe("Tiered Recommendations Integration", () => {
 					},
 				],
 				summary: "Essential gear only",
+				timings: { formatterMs: 10, recommenderMs: 20 },
 			});
 
 			// Connect SSE client

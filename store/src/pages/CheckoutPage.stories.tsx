@@ -71,9 +71,6 @@ export const Loading: Story = {
 };
 
 export const SubmitError: Story = {
-	args: {
-		initialError: "Something went wrong. Please try again.",
-	},
 	decorators: [
 		(Story) => (
 			<MemoryRouter initialEntries={["/checkout?session=test"]}>

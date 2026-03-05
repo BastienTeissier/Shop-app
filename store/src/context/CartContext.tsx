@@ -13,7 +13,7 @@ import type { CartSummary, CartSummaryApiResponse } from "@shared/types.js";
 
 import {
 	addCartItem,
-	createCart,
+	cartCreate,
 	fetchCartSummary,
 	removeCartItem,
 	updateCartItemQuantity,
@@ -211,7 +211,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 				if (creatingCartRef.current) return;
 				creatingCartRef.current = true;
 				try {
-					const { sessionId: newSessionId } = await createCart();
+					const { sessionId: newSessionId } = await cartCreate();
 					currentSessionId = newSessionId;
 					setSessionId(newSessionId);
 					setNotFound(false);

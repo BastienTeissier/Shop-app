@@ -4,7 +4,7 @@ import { Link, useLocation, useParams } from "react-router-dom";
 import { formatPrice } from "@shared/format.js";
 import type { Product } from "@shared/types.js";
 
-import { fetchProduct } from "../api.js";
+import { productFetch } from "../api.js";
 import { useCart } from "../context/CartContext.js";
 
 type RouteProduct = Product & {
@@ -38,7 +38,7 @@ export function ProductDetailPage() {
 			return;
 		}
 
-		fetchProduct(numericId)
+		productFetch(numericId)
 			.then((res) => {
 				if (res.notFound) {
 					setNotFound(true);

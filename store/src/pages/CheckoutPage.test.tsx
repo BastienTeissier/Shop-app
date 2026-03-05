@@ -19,7 +19,7 @@ vi.mock("../context/CartContext.js", () => ({
 }));
 
 vi.mock("../api.js", () => ({
-	submitOrder: (...args: unknown[]) => mockSubmitOrder(...args),
+	orderSubmit: (...args: unknown[]) => mockSubmitOrder(...args),
 }));
 
 vi.mock("react-router-dom", async () => {

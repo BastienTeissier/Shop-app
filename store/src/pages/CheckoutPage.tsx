@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 import { formatPrice } from "@shared/format.js";
 
-import { submitOrder } from "../api.js";
+import { orderSubmit } from "../api.js";
 import { useCart } from "../context/CartContext.js";
 
 export function CheckoutPage() {
@@ -29,7 +29,7 @@ export function CheckoutPage() {
 		setSubmitError(null);
 
 		try {
-			const { reference } = await submitOrder(
+			const { reference } = await orderSubmit(
 				sessionId,
 				name.trim(),
 				email.trim(),

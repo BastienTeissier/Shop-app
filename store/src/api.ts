@@ -73,7 +73,7 @@ export async function removeCartItem(
 	return res.json();
 }
 
-export async function createCart(): Promise<CreateCartResponse> {
+export async function cartCreate(): Promise<CreateCartResponse> {
 	const res = await fetch(`${API_BASE}/api/cart`, {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
@@ -84,7 +84,7 @@ export async function createCart(): Promise<CreateCartResponse> {
 	return res.json();
 }
 
-export async function fetchProduct(id: number): Promise<ProductApiResponse> {
+export async function productFetch(id: number): Promise<ProductApiResponse> {
 	const res = await fetch(`${API_BASE}/api/products/${id}`);
 	if (!res.ok && res.status !== 404 && res.status !== 400) {
 		throw new Error(`Failed to fetch product (${res.status})`);
@@ -116,7 +116,7 @@ export async function postA2UIEvent(
 	}
 }
 
-export async function submitOrder(
+export async function orderSubmit(
 	sessionId: string,
 	customerName: string,
 	customerEmail: string,
@@ -136,7 +136,7 @@ export async function submitOrder(
 	return { reference: data.reference };
 }
 
-export async function fetchOrder(reference: string): Promise<OrderApiResponse> {
+export async function orderFetch(reference: string): Promise<OrderApiResponse> {
 	const res = await fetch(
 		`${API_BASE}/api/orders/${encodeURIComponent(reference)}`,
 	);

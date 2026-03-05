@@ -11,7 +11,7 @@ import { OrderConfirmationPage } from "./OrderConfirmationPage.js";
 const mockFetchOrder = vi.fn();
 
 vi.mock("../api.js", () => ({
-	fetchOrder: (...args: unknown[]) => mockFetchOrder(...args),
+	orderFetch: (...args: unknown[]) => mockFetchOrder(...args),
 }));
 
 // ---------------------------------------------------------------------------

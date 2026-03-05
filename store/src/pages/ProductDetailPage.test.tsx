@@ -13,7 +13,7 @@ const mockFetchProduct = vi.fn();
 const mockAddItem = vi.fn();
 
 vi.mock("../api.js", () => ({
-	fetchProduct: (...args: unknown[]) => mockFetchProduct(...args),
+	productFetch: (...args: unknown[]) => mockFetchProduct(...args),
 }));
 
 vi.mock("../context/CartContext.js", () => ({

@@ -21,7 +21,7 @@ vi.mock("../api.js", () => ({
 		mockUpdateCartItemQuantity(...args),
 	removeCartItem: (...args: unknown[]) => mockRemoveCartItem(...args),
 	addCartItem: (...args: unknown[]) => mockAddCartItem(...args),
-	createCart: (...args: unknown[]) => mockCreateCart(...args),
+	cartCreate: (...args: unknown[]) => mockCreateCart(...args),
 }));
 
 // ---------------------------------------------------------------------------

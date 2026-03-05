@@ -3,14 +3,31 @@ import type { Response } from "express";
 import type {
 	A2UIMessage,
 	A2UISession,
-	LastRecommendation,
 	RecommendationDataModel,
+	RecommendationProduct,
 } from "@shared/a2ui-types.js";
+
+import type { FormattedQuery } from "../agent/schemas/index.js";
 
 import { createInitialDataModel } from "../../../shared/a2ui-types.js";
 import { parseSafePath } from "../../../shared/a2ui-utils.js";
 
 export { createInitialDataModel };
+
+// =============================================================================
+// Server-only Runtime Types
+// =============================================================================
+
+export type LastRecommendation = {
+	query: string;
+	products: RecommendationProduct[];
+};
+
+type SessionRuntime = {
+	abortController?: AbortController;
+	lastRecommendation?: LastRecommendation;
+	lastFormattedQuery?: FormattedQuery;
+};
 
 // =============================================================================
 // Session Store
@@ -19,6 +36,7 @@ export { createInitialDataModel };
 type SessionEntry = {
 	session: A2UISession;
 	clients: Set<Response>;
+	runtime: SessionRuntime;
 };
 
 const sessions = new Map<string, SessionEntry>();
@@ -37,6 +55,7 @@ export function createSession(sessionId: string): A2UISession {
 	sessions.set(sessionId, {
 		session,
 		clients: new Set(),
+		runtime: {},
 	});
 
 	return session;
@@ -205,6 +224,25 @@ export function getCartSessionId(sessionId: string): string | undefined {
 }
 
 // =============================================================================
+// Pipeline Abort
+// =============================================================================
+
+/**
+ * Abort any in-flight pipeline for the given session and return a fresh AbortSignal.
+ */
+export function abortPreviousPipeline(sessionId: string): AbortSignal {
+	const entry = sessions.get(sessionId);
+	if (entry?.runtime.abortController) {
+		entry.runtime.abortController.abort();
+	}
+	const controller = new AbortController();
+	if (entry) {
+		entry.runtime.abortController = controller;
+	}
+	return controller.signal;
+}
+
+// =============================================================================
 // Last Recommendation Context (for refinement)
 // =============================================================================
 
@@ -212,14 +250,34 @@ export function setLastRecommendation(
 	sessionId: string,
 	lastRecommendation: LastRecommendation,
 ): void {
-	const session = getSession(sessionId);
-	if (session) {
-		session.dataModel.lastRecommendation = lastRecommendation;
+	const entry = sessions.get(sessionId);
+	if (entry) {
+		entry.runtime.lastRecommendation = lastRecommendation;
 	}
 }
 
 export function getLastRecommendation(
 	sessionId: string,
 ): LastRecommendation | undefined {
-	return getSession(sessionId)?.dataModel.lastRecommendation;
+	return sessions.get(sessionId)?.runtime.lastRecommendation;
+}
+
+// =============================================================================
+// Last Formatted Query (for UF2/UF3)
+// =============================================================================
+
+export function setLastFormattedQuery(
+	sessionId: string,
+	formattedQuery: FormattedQuery,
+): void {
+	const entry = sessions.get(sessionId);
+	if (entry) {
+		entry.runtime.lastFormattedQuery = formattedQuery;
+	}
+}
+
+export function getLastFormattedQuery(
+	sessionId: string,
+): FormattedQuery | undefined {
+	return sessions.get(sessionId)?.runtime.lastFormattedQuery;
 }

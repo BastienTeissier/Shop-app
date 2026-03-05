@@ -207,11 +207,6 @@ export type RecommendationCart = {
 	totalPrice: number;
 };
 
-export type LastRecommendation = {
-	query: string;
-	products: RecommendationProduct[];
-};
-
 export type RecommendationDataModel = {
 	query: string;
 	constraints: RecommendationConstraints;
@@ -219,7 +214,6 @@ export type RecommendationDataModel = {
 	status: RecommendationStatus;
 	ui: RecommendationUIState;
 	cart: RecommendationCart;
-	lastRecommendation?: LastRecommendation;
 };
 
 // =============================================================================

@@ -7,7 +7,9 @@ import {
 	cartRemoveItemApiHandler,
 	cartSummaryApiHandler,
 	cartUpdateItemApiHandler,
-} from "./api/cart.js";
+	orderCreateApiHandler,
+	orderGetApiHandler,
+} from "./api/index.js";
 import { mcp } from "./middleware.js";
 import server from "./server.js";
 
@@ -37,6 +39,10 @@ app.get("/api/cart/:sessionId/summary", cartSummaryApiHandler);
 app.post("/api/cart/:sessionId/items", cartAddItemApiHandler);
 app.put("/api/cart/:sessionId/items/:productId", cartUpdateItemApiHandler);
 app.delete("/api/cart/:sessionId/items/:productId", cartRemoveItemApiHandler);
+
+// Order REST endpoints
+app.post("/api/orders", orderCreateApiHandler);
+app.get("/api/orders/:reference", orderGetApiHandler);
 
 app.use(mcp(server));
 

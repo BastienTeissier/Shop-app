@@ -8,7 +8,12 @@
 		"build": "vite build",
 		"preview": "vite preview",
 		"typecheck": "tsc --noEmit",
-		"test": "vitest run"
+		"test": "vitest run",
+		"storybook": "storybook dev -p 6006",
+		"storybook:build": "storybook build -o storybook-static",
+		"verify:list": "node scripts/verify-design.mjs --list",
+		"verify:story": "node scripts/verify-design.mjs",
+		"verify:all": "node scripts/verify-design.mjs --all"
 	},
 	"dependencies": {
 		"react": "^19.2.3",
@@ -16,6 +21,9 @@
 		"react-router-dom": "^7.6.1"
 	},
 	"devDependencies": {
+		"@playwright/test": "^1.58.2",
+		"@storybook/react": "^10.2.13",
+		"@storybook/react-vite": "^10.2.13",
 		"@testing-library/jest-dom": "^6.4.2",
 		"@testing-library/react": "^14.2.2",
 		"@testing-library/user-event": "^14.5.2",
@@ -23,6 +31,7 @@
 		"@types/react-dom": "^19.2.3",
 		"@vitejs/plugin-react": "^5.1.2",
 		"happy-dom": "^20.4.0",
+		"storybook": "^10.2.13",
 		"typescript": "^5.9.3",
 		"vite": "^7.3.1",
 		"vitest": "^3.2.4"

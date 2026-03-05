@@ -34,9 +34,12 @@ sport-shop/
 │   │   │   ├── client.ts     # Prisma singleton + lifecycle
 │   │   │   ├── products.ts   # Product domain queries
 │   │   │   ├── cart.ts       # Cart domain queries
+│   │   │   ├── order.ts      # Order domain queries
 │   │   │   └── index.ts      # Barrel re-exports
 │   │   ├── api/              # REST API handlers (standalone storefront)
-│   │   │   └── cart.ts       # Cart summary endpoint
+│   │   │   ├── cart.ts       # Cart REST endpoints
+│   │   │   ├── order.ts      # Order REST endpoints
+│   │   │   └── index.ts      # Barrel re-exports
 │   │   ├── tools/            # Widget handlers (business logic)
 │   │   │   ├── utils.ts      # Shared utilities
 │   │   │   ├── ecom-carousel.ts
@@ -74,6 +77,12 @@ sport-shop/
 │   │   ├── main.tsx          # Entry point
 │   │   ├── pages/            # Page components
 │   │   └── test/
+│   ├── .storybook/           # Storybook config + mocks
+│   │   ├── main.ts
+│   │   ├── preview.tsx
+│   │   └── mocks/CartContext.tsx
+│   ├── scripts/
+│   │   └── verify-design.mjs # Playwright screenshot capture
 │   ├── vite.config.ts
 │   └── tsconfig.json
 ├── prisma/
@@ -178,6 +187,10 @@ sport-shop/
 | `pnpm db:reset`         | Wipe and recreate database         | Clean slate for testing                           |
 | `pnpm db:studio`        | Open Prisma Studio GUI             | Visual database inspection                        |
 | `pnpm inspector`        | Start MCP Inspector                | Debug MCP protocol directly                       |
+| `pnpm storybook`        | Start Storybook dev server         | Develop/preview store components in isolation      |
+| `pnpm verify:list`      | List available Storybook story IDs | See all capturable stories                        |
+| `pnpm verify:story`     | Capture screenshot of a story      | `pnpm verify:story -- <story-id>`                 |
+| `pnpm verify:all`       | Capture screenshots of all stories | Full design verification pass                     |
 
 ### Development Workflow
 

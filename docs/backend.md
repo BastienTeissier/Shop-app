@@ -13,11 +13,14 @@ server/
 │   ├── server.ts       # MCP server instance, widget registration (orchestration only)
 │   ├── middleware.ts   # MCP transport handler
 │   ├── api/            # REST API handlers (standalone storefront)
-│   │   └── cart.ts     # Cart summary endpoint
+│   │   ├── cart.ts     # Cart REST endpoints
+│   │   ├── order.ts    # Order REST endpoints
+│   │   └── index.ts    # Barrel re-exports
 │   ├── db/             # Database layer
 │   │   ├── client.ts   # Prisma client singleton + lifecycle
 │   │   ├── products.ts # Product domain queries
 │   │   ├── cart.ts     # Cart domain queries + types re-export
+│   │   ├── order.ts    # Order domain queries
 │   │   └── index.ts    # Barrel re-exports
 │   └── tools/          # Widget handlers (business logic)
 │       ├── utils.ts    # Shared utilities (textContent, validation)

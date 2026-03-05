@@ -199,3 +199,73 @@ body {
 	text-align: center;
 	text-decoration: none;
 }
+
+/* Checkout form */
+
+.checkout-form {
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+	margin-top: 1.5rem;
+}
+
+.form-group {
+	display: flex;
+	flex-direction: column;
+	gap: 0.25rem;
+}
+
+.form-label {
+	font-weight: 600;
+	font-size: 0.875rem;
+}
+
+.form-input {
+	padding: 0.5rem;
+	border: 1px solid var(--text-muted);
+	border-radius: 4px;
+	background: var(--bg);
+	color: var(--text);
+	font-size: 1rem;
+}
+
+.submit-btn {
+	display: block;
+	width: 100%;
+	padding: 0.75rem;
+	margin-top: 0.5rem;
+	background: var(--accent);
+	color: var(--accent-text);
+	border: none;
+	border-radius: 8px;
+	font-size: 1rem;
+	font-weight: bold;
+	cursor: pointer;
+	text-align: center;
+}
+
+.submit-btn:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+/* Order confirmation */
+
+.order-reference {
+	font-size: 1.25rem;
+	font-weight: bold;
+	text-align: center;
+	margin: 1rem 0;
+}
+
+.confirmation-section {
+	margin-top: 1.5rem;
+}
+
+.continue-link {
+	display: block;
+	text-align: center;
+	margin-top: 1.5rem;
+	color: var(--accent);
+	text-decoration: none;
+}

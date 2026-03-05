@@ -167,3 +167,32 @@ DATABASE_URL=file:../test.db
 ```
 
 The `test:integration` script automatically resets the test database before running.
+
+## Design Verification (Screenshots)
+
+Playwright-based screenshot capture for visual verification of store components rendered in Storybook.
+
+**Script**: `store/scripts/verify-design.mjs`
+
+### Usage
+
+```bash
+# 1. Start Storybook (keep running in a separate terminal)
+pnpm storybook
+
+# 2. List available story IDs
+pnpm verify:list
+
+# 3. Capture a single story (desktop viewport)
+pnpm verify:story -- pages-cartpage--with-items
+
+# 4. Capture with multiple viewports
+pnpm verify:story -- pages-cartpage--with-items --viewports mobile,desktop
+
+# 5. Capture all stories
+pnpm verify:all
+```
+
+**Output**: Screenshots saved to `store/screenshots/<story-id>--<viewport>.png`.
+
+**Viewports**: `mobile` (375x667), `tablet` (768x1024), `desktop` (1280x720).

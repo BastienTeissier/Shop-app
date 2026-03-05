@@ -27,7 +27,11 @@
 		"db:deploy": "prisma migrate deploy",
 		"db:reset": "prisma migrate reset",
 		"db:seed": "prisma db seed",
-		"db:studio": "prisma studio"
+		"db:studio": "prisma studio",
+		"storybook": "pnpm --filter store storybook",
+		"verify:list": "pnpm --filter store verify:list",
+		"verify:story": "pnpm --filter store verify:story",
+		"verify:all": "pnpm --filter store verify:all"
 	},
 	"dependencies": {
 		"@ai-sdk/google": "^1.0.0",
@@ -59,6 +63,7 @@
 		"@vitejs/plugin-react": "^5.1.2",
 		"happy-dom": "^20.4.0",
 		"nodemon": "^3.1.11",
+		"playwright": "^1.58.2",
 		"prisma": "^5.22.0",
 		"shx": "^0.4.0",
 		"tsx": "^4.21.0",

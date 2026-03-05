@@ -15,7 +15,7 @@ import {
 	updateCartItemQuantity,
 } from "../api.js";
 
-type CartContextValue = {
+export type CartContextValue = {
 	cart: CartSummary | null;
 	sessionId: string | null;
 	loading: boolean;
@@ -26,9 +26,10 @@ type CartContextValue = {
 	removeItem: (productId: number) => void;
 	addItem: (productId: number) => void;
 	clearError: () => void;
+	clearCart: () => void;
 };
 
-const CartContext = createContext<CartContextValue | null>(null);
+export const CartContext = createContext<CartContextValue | null>(null);
 
 const ERROR_DISMISS_MS = 3000;
 
@@ -165,6 +166,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
 	const clearError = useCallback(() => setError(null), []);
 
+	const clearCart = useCallback(() => setCart({ items: [], subtotal: 0 }), []);
+
 	const value = useMemo<CartContextValue>(
 		() => ({
 			cart,
@@ -177,6 +180,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 			removeItem,
 			addItem,
 			clearError,
+			clearCart,
 		}),
 		[
 			cart,
@@ -189,6 +193,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 			removeItem,
 			addItem,
 			clearError,
+			clearCart,
 		],
 	);
 

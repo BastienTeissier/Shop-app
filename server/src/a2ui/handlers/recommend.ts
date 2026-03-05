@@ -1,8 +1,10 @@
-import { runRecommendationAgent } from "../../agent/index.js";
+import { runSearchPipeline } from "../../agent/index.js";
 import type { RecommendationResult } from "../../agent/recommendation-agent.js";
 import {
+	abortPreviousPipeline,
 	broadcastDataModelUpdate,
 	getLastRecommendation,
+	setLastFormattedQuery,
 	setLastRecommendation,
 } from "../session.js";
 
@@ -51,6 +53,9 @@ export async function handleRecommend(
 	sessionId: string,
 	query: string,
 ): Promise<void> {
+	// Abort any in-flight pipeline and get a fresh signal
+	const abortSignal = abortPreviousPipeline(sessionId);
+
 	// Update status to searching
 	broadcastDataModelUpdate(sessionId, "/status", {
 		phase: "searching",
@@ -62,8 +67,8 @@ export async function handleRecommend(
 	broadcastDataModelUpdate(sessionId, "/ui/query", query);
 
 	try {
-		// Run the recommendation agent (batch - waits for completion)
-		const result = await runRecommendationAgent(query);
+		// Run the search pipeline (formatter → recommender)
+		const result = await runSearchPipeline(query, { abortSignal });
 
 		// Apply diversity filter
 		console.info(
@@ -77,12 +82,17 @@ export async function handleRecommend(
 		// Broadcast filtered products with highlights and reasonWhy
 		broadcastDataModelUpdate(sessionId, "/products", filteredProducts);
 
-		// Store last recommendation for refinement
+		// Store last recommendation for refinement (raw user query, not formatted)
 		if (filteredProducts.length > 0) {
 			setLastRecommendation(sessionId, {
 				query,
 				products: filteredProducts,
 			});
+		}
+
+		// Store formatted query in runtime state for UF2/UF3
+		if (result.formattedQuery) {
+			setLastFormattedQuery(sessionId, result.formattedQuery);
 		}
 
 		// Update status to completed
@@ -94,6 +104,10 @@ export async function handleRecommend(
 					: "No recommendations found",
 		});
 	} catch (error) {
+		// Silently ignore abort errors — a new pipeline is already running
+		if (error instanceof Error && error.name === "AbortError") {
+			return;
+		}
 		console.error("Recommendation agent error:", error);
 		broadcastDataModelUpdate(sessionId, "/status", {
 			phase: "error",
@@ -119,6 +133,9 @@ export async function handleRefine(
 		return;
 	}
 
+	// Abort any in-flight pipeline and get a fresh signal
+	const abortSignal = abortPreviousPipeline(sessionId);
+
 	// Update status to searching
 	broadcastDataModelUpdate(sessionId, "/status", {
 		phase: "searching",
@@ -126,10 +143,13 @@ export async function handleRefine(
 	});
 
 	try {
-		// Run the recommendation agent with refinement context
-		const result = await runRecommendationAgent(refinementQuery, {
-			previousQuery: lastRecommendation.query,
-			previousProducts: lastRecommendation.products,
+		// Run the search pipeline with refinement context
+		const result = await runSearchPipeline(refinementQuery, {
+			refinementContext: {
+				previousQuery: lastRecommendation.query,
+				previousProducts: lastRecommendation.products,
+			},
+			abortSignal,
 		});
 
 		// Apply diversity filter
@@ -152,6 +172,11 @@ export async function handleRefine(
 			});
 		}
 
+		// Store formatted query in runtime state for UF2/UF3
+		if (result.formattedQuery) {
+			setLastFormattedQuery(sessionId, result.formattedQuery);
+		}
+
 		// Update status to completed
 		broadcastDataModelUpdate(sessionId, "/status", {
 			phase: "completed",
@@ -161,6 +186,10 @@ export async function handleRefine(
 					: "No matching products after refinement",
 		});
 	} catch (error) {
+		// Silently ignore abort errors — a new pipeline is already running
+		if (error instanceof Error && error.name === "AbortError") {
+			return;
+		}
 		console.error("Refinement agent error:", error);
 		broadcastDataModelUpdate(sessionId, "/status", {
 			phase: "error",

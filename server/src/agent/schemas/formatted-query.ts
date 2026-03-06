@@ -15,6 +15,7 @@ export const FormattedQuerySchema = z.object({
 			size: z.string().optional().describe("Size preference"),
 			season: z.string().optional().describe("Season preference"),
 		})
+		.default({})
 		.describe("Inferred constraints from the query"),
 	formattedQueryForRecommender: z
 		.string()

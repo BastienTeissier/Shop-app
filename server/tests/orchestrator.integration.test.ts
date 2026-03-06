@@ -92,6 +92,21 @@ describe("Search Pipeline Orchestrator", () => {
 		});
 	});
 
+	describe("test_pipeline_rethrows_abort_error_from_formatter", () => {
+		it("rethrows AbortError instead of falling back to raw query", async () => {
+			const abortError = new Error("Aborted");
+			abortError.name = "AbortError";
+			mockRunQueryFormatter.mockRejectedValue(abortError);
+
+			await expect(runSearchPipeline("running shoes")).rejects.toThrow(
+				abortError,
+			);
+
+			// Recommender should never be called — abort propagates immediately
+			expect(mockRunRecommendationAgent).not.toHaveBeenCalled();
+		});
+	});
+
 	describe("test_pipeline_returns_formatted_query_in_result", () => {
 		it("includes formatted query in pipeline result", async () => {
 			const formattedQuery = {

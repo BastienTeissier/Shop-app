@@ -247,7 +247,7 @@ export function abortPreviousPipeline(sessionId: string): AbortSignal {
 
 export function setLastRecommendation(
 	sessionId: string,
-	lastRecommendation: LastRecommendation,
+	lastRecommendation: LastRecommendation | undefined,
 ): void {
 	const entry = sessions.get(sessionId);
 	if (entry) {
@@ -267,7 +267,7 @@ export function getLastRecommendation(
 
 export function setLastFormattedQuery(
 	sessionId: string,
-	formattedQuery: FormattedQuery,
+	formattedQuery: FormattedQuery | undefined,
 ): void {
 	const entry = sessions.get(sessionId);
 	if (entry) {

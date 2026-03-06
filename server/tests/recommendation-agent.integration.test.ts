@@ -25,8 +25,8 @@ describe("Recommendation Agent Integration", () => {
 	let prisma: PrismaClient;
 	let testProductId: number;
 
-	// Mock the recommendation agent module
-	const mockRunRecommendationAgent = vi.fn();
+	// Mock the search pipeline module
+	const mockRunSearchPipeline = vi.fn();
 
 	beforeAll(async () => {
 		if (!process.env.DATABASE_URL) {
@@ -62,7 +62,14 @@ describe("Recommendation Agent Integration", () => {
 
 		// Mock the agent module before importing handlers
 		vi.doMock("../src/agent/index.js", () => ({
-			runRecommendationAgent: mockRunRecommendationAgent,
+			runSearchPipeline: mockRunSearchPipeline,
+			runRefinementAgent: vi.fn().mockResolvedValue({ chips: [] }),
+			buildProductSummary: vi.fn(() => ({
+				titles: [],
+				prices: [],
+				tiers: [],
+				subCategories: [],
+			})),
 		}));
 
 		// Import handlers after mocking
@@ -74,7 +81,7 @@ describe("Recommendation Agent Integration", () => {
 	});
 
 	beforeEach(() => {
-		mockRunRecommendationAgent.mockReset();
+		mockRunSearchPipeline.mockReset();
 	});
 
 	afterEach(() => {
@@ -94,7 +101,7 @@ describe("Recommendation Agent Integration", () => {
 			const sessionId = crypto.randomUUID();
 
 			// Mock agent response
-			mockRunRecommendationAgent.mockResolvedValue({
+			mockRunSearchPipeline.mockResolvedValue({
 				products: [
 					{
 						id: testProductId,
@@ -107,6 +114,7 @@ describe("Recommendation Agent Integration", () => {
 					},
 				],
 				summary: "Found 1 great running shoe for you!",
+				timings: { formatterMs: 10, recommenderMs: 20 },
 			});
 
 			// Connect SSE client
@@ -134,9 +142,10 @@ describe("Recommendation Agent Integration", () => {
 			// Verify success response
 			expect(eventCtx.responseBody()).toEqual({ success: true });
 
-			// Verify agent was called with the query
-			expect(mockRunRecommendationAgent).toHaveBeenCalledWith(
+			// Verify pipeline was called with the query
+			expect(mockRunSearchPipeline).toHaveBeenCalledWith(
 				"running shoes for beginners",
+				expect.objectContaining({ abortSignal: expect.any(AbortSignal) }),
 			);
 
 			// Verify SSE client received products with highlights and reasonWhy
@@ -169,9 +178,10 @@ describe("Recommendation Agent Integration", () => {
 			const sessionId = crypto.randomUUID();
 
 			// Mock empty agent response
-			mockRunRecommendationAgent.mockResolvedValue({
+			mockRunSearchPipeline.mockResolvedValue({
 				products: [],
 				summary: "No recommendations found.",
+				timings: { formatterMs: 10, recommenderMs: 20 },
 			});
 
 			// Connect SSE client
@@ -228,7 +238,7 @@ describe("Recommendation Agent Integration", () => {
 			const sessionId = crypto.randomUUID();
 
 			// Mock agent response
-			mockRunRecommendationAgent.mockResolvedValue({
+			mockRunSearchPipeline.mockResolvedValue({
 				products: [
 					{
 						id: testProductId,
@@ -241,6 +251,7 @@ describe("Recommendation Agent Integration", () => {
 					},
 				],
 				summary: "Here are your recommendations.",
+				timings: { formatterMs: 10, recommenderMs: 20 },
 			});
 
 			// Connect SSE client
@@ -294,7 +305,7 @@ describe("Recommendation Agent Integration", () => {
 			const sessionId = crypto.randomUUID();
 
 			// Mock agent error
-			mockRunRecommendationAgent.mockRejectedValue(
+			mockRunSearchPipeline.mockRejectedValue(
 				new Error("API rate limit exceeded"),
 			);
 
@@ -345,7 +356,7 @@ describe("Recommendation Agent Integration", () => {
 			const sessionId = crypto.randomUUID();
 
 			// Mock agent response with subCategory
-			mockRunRecommendationAgent.mockResolvedValue({
+			mockRunSearchPipeline.mockResolvedValue({
 				products: [
 					{
 						id: testProductId,
@@ -359,6 +370,7 @@ describe("Recommendation Agent Integration", () => {
 					},
 				],
 				summary: "Found running gear for you!",
+				timings: { formatterMs: 10, recommenderMs: 20 },
 			});
 
 			// Connect SSE client
@@ -404,7 +416,7 @@ describe("Recommendation Agent Integration", () => {
 	describe("test_empty_query_triggers_popular_products", () => {
 		it("Empty query automatically searches for popular products", async () => {
 			// Mock agent response
-			mockRunRecommendationAgent.mockResolvedValue({
+			mockRunSearchPipeline.mockResolvedValue({
 				products: [
 					{
 						id: testProductId,
@@ -418,6 +430,7 @@ describe("Recommendation Agent Integration", () => {
 					},
 				],
 				summary: "Here are popular products!",
+				timings: { formatterMs: 10, recommenderMs: 20 },
 			});
 
 			// Connect SSE client with empty query
@@ -430,9 +443,10 @@ describe("Recommendation Agent Integration", () => {
 			// Wait a bit for auto-trigger to execute
 			await new Promise((resolve) => setTimeout(resolve, 100));
 
-			// Verify agent was called with "popular products"
-			expect(mockRunRecommendationAgent).toHaveBeenCalledWith(
+			// Verify pipeline was called with "popular products"
+			expect(mockRunSearchPipeline).toHaveBeenCalledWith(
 				"popular products",
+				expect.objectContaining({ abortSignal: expect.any(AbortSignal) }),
 			);
 
 			sseCtx.triggerClose();
@@ -444,7 +458,7 @@ describe("Recommendation Agent Integration", () => {
 			const sessionId = crypto.randomUUID();
 
 			// Mock agent response with duplicate sub-categories
-			mockRunRecommendationAgent.mockResolvedValue({
+			mockRunSearchPipeline.mockResolvedValue({
 				products: [
 					{
 						id: 1,
@@ -481,6 +495,7 @@ describe("Recommendation Agent Integration", () => {
 					},
 				],
 				summary: "Found hiking gear!",
+				timings: { formatterMs: 10, recommenderMs: 20 },
 			});
 
 			// Connect SSE client
@@ -529,7 +544,7 @@ describe("Recommendation Agent Integration", () => {
 			const sessionId = crypto.randomUUID();
 
 			// Mock agent response with all same sub-category
-			mockRunRecommendationAgent.mockResolvedValue({
+			mockRunSearchPipeline.mockResolvedValue({
 				products: [
 					{
 						id: 1,
@@ -563,6 +578,7 @@ describe("Recommendation Agent Integration", () => {
 					},
 				],
 				summary: "Found running shoes!",
+				timings: { formatterMs: 10, recommenderMs: 20 },
 			});
 
 			// Connect SSE client
@@ -608,7 +624,7 @@ describe("Recommendation Agent Integration", () => {
 			const sessionId = crypto.randomUUID();
 
 			// Mock agent response without subCategory fields
-			mockRunRecommendationAgent.mockResolvedValue({
+			mockRunSearchPipeline.mockResolvedValue({
 				products: [
 					{
 						id: 1,
@@ -642,6 +658,7 @@ describe("Recommendation Agent Integration", () => {
 					},
 				],
 				summary: "Found products!",
+				timings: { formatterMs: 10, recommenderMs: 20 },
 			});
 
 			// Connect SSE client

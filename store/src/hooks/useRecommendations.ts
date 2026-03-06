@@ -5,6 +5,7 @@ import type {
 	RecommendationDataModel,
 	RecommendationProduct,
 	RecommendationStatus,
+	SuggestionChip,
 } from "@shared/a2ui-types.js";
 import { createInitialDataModel } from "@shared/a2ui-types.js";
 import { applyDataModelUpdate } from "@shared/a2ui-utils.js";
@@ -14,6 +15,7 @@ import { getA2UIStreamUrl, postA2UIEvent } from "../api.js";
 export type UseRecommendationsReturn = {
 	products: RecommendationProduct[];
 	status: RecommendationStatus;
+	suggestions: SuggestionChip[];
 	connected: boolean;
 	error: string | null;
 	search: (query: string) => void;
@@ -114,6 +116,7 @@ export function useRecommendations(): UseRecommendationsReturn {
 	return {
 		products: dataModel.products,
 		status: dataModel.status,
+		suggestions: dataModel.suggestions?.chips ?? [],
 		connected,
 		error,
 		search,

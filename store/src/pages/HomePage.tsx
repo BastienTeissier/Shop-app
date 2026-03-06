@@ -6,6 +6,7 @@ import { TieredProductGrid } from "@shared/components/TieredProductGrid.js";
 
 import { useCart } from "../context/CartContext.js";
 import { useRecommendations } from "../hooks/useRecommendations.js";
+import { useSuggestions } from "../hooks/useSuggestions.js";
 
 const PROMPT_BUTTONS = [
 	"Running gear",
@@ -18,8 +19,9 @@ const PROMPT_BUTTONS = [
 export function HomePage() {
 	const navigate = useNavigate();
 	const { addItem } = useCart();
-	const { products, status, connected, error, search, reconnect } =
+	const { products, status, suggestions, connected, error, search, reconnect } =
 		useRecommendations();
+	const { chips, isVisible } = useSuggestions(suggestions);
 
 	const [query, setQuery] = useState("");
 	const [hasSearched, setHasSearched] = useState(false);
@@ -77,6 +79,21 @@ export function HomePage() {
 					</button>
 				))}
 			</div>
+
+			{chips.length > 0 && (
+				<div className={`suggestion-chips ${isVisible ? "visible" : ""}`}>
+					{chips.map((chip) => (
+						<button
+							key={chip.label}
+							type="button"
+							className="suggestion-chip"
+							onClick={() => handleSearch(`${query} ${chip.label}`)}
+						>
+							{chip.label}
+						</button>
+					))}
+				</div>
+			)}
 
 			{isSearching && (
 				<div className="status-message">{status.message || "Searching..."}</div>

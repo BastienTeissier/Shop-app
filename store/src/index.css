@@ -324,6 +324,37 @@ body {
 	color: var(--accent);
 }
 
+/* Suggestion chips */
+
+.suggestion-chips {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+	justify-content: center;
+	margin: 0.5rem 0;
+	opacity: 0;
+	transition: opacity 200ms ease-in;
+}
+
+.suggestion-chips.visible {
+	opacity: 1;
+}
+
+.suggestion-chip {
+	padding: 0.4rem 0.75rem;
+	border: 1px solid var(--accent);
+	border-radius: 999px;
+	background: var(--bg);
+	color: var(--accent);
+	font-size: 0.8rem;
+	cursor: pointer;
+}
+
+.suggestion-chip:hover {
+	background: var(--accent);
+	color: var(--accent-text);
+}
+
 /* Product grid */
 
 .product-grid {

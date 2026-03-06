@@ -63,6 +63,13 @@ describe("Recommendation Agent Integration", () => {
 		// Mock the agent module before importing handlers
 		vi.doMock("../src/agent/index.js", () => ({
 			runSearchPipeline: mockRunSearchPipeline,
+			runRefinementAgent: vi.fn().mockResolvedValue({ chips: [] }),
+			buildProductSummary: vi.fn(() => ({
+				titles: [],
+				prices: [],
+				tiers: [],
+				subCategories: [],
+			})),
 		}));
 
 		// Import handlers after mocking

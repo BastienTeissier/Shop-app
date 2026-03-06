@@ -22,10 +22,17 @@ import {
 	isDataModelUpdate,
 } from "./helpers/a2ui-mocks.js";
 
-// Mock the search pipeline before any imports
+// Mock the search pipeline and refinement agent before any imports
 const mockRunSearchPipeline = vi.fn();
 vi.mock("../src/agent/index.js", () => ({
 	runSearchPipeline: mockRunSearchPipeline,
+	runRefinementAgent: vi.fn().mockResolvedValue({ chips: [] }),
+	buildProductSummary: vi.fn(() => ({
+		titles: [],
+		prices: [],
+		tiers: [],
+		subCategories: [],
+	})),
 }));
 
 describe("Tiered Recommendations Integration", () => {
@@ -318,12 +325,23 @@ describe("Tiered Recommendations Integration", () => {
 		it("refine action without prior search shows error", async () => {
 			const sessionId = crypto.randomUUID();
 
-			// Connect SSE client (creates fresh session)
+			// Stub the auto-triggered search from a2uiStreamHandler
+			mockRunSearchPipeline.mockResolvedValueOnce({
+				products: [],
+				summary: "Auto-trigger stub",
+				timings: { formatterMs: 0, recommenderMs: 0 },
+			});
+
+			// Connect SSE client (creates fresh session, consumes auto-trigger stub)
 			const sseCtx = createSSEMockContext({ session: sessionId });
 			a2uiStreamHandler(
 				sseCtx.req as unknown as Request,
 				sseCtx.res as unknown as Response,
 			);
+
+			// Wait for auto-trigger to settle, then clear mock history
+			await new Promise((resolve) => setTimeout(resolve, 50));
+			mockRunSearchPipeline.mockClear();
 
 			const initialCount = sseCtx.messages.length;
 
@@ -355,7 +373,7 @@ describe("Tiered Recommendations Integration", () => {
 				"No previous recommendation",
 			);
 
-			// Verify agent was NOT called
+			// Verify agent was NOT called for the refine action
 			expect(mockRunSearchPipeline).not.toHaveBeenCalled();
 
 			sseCtx.triggerClose();

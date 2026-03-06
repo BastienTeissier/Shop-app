@@ -23,6 +23,13 @@ import {
 const mockRunSearchPipeline = vi.fn();
 vi.mock("../src/agent/index.js", () => ({
 	runSearchPipeline: mockRunSearchPipeline,
+	runRefinementAgent: vi.fn().mockResolvedValue({ chips: [] }),
+	buildProductSummary: vi.fn(() => ({
+		titles: [],
+		prices: [],
+		tiers: [],
+		subCategories: [],
+	})),
 }));
 
 describe("Pipeline Abort Integration", () => {

@@ -222,4 +222,96 @@ describe("useRecommendations", () => {
 
 		expect(es.close).toHaveBeenCalled();
 	});
+
+	describe("refine", () => {
+		it("posts refine event without creating new EventSource", () => {
+			mockPostA2UIEvent.mockResolvedValue(undefined);
+			const { result } = renderHook(() => useRecommendations());
+
+			// First search creates EventSource
+			act(() => {
+				result.current.search("jacket");
+			});
+			expect(mockEventSources).toHaveLength(1);
+
+			// Refine posts event
+			act(() => {
+				result.current.refine("jacket Men");
+			});
+
+			expect(mockPostA2UIEvent).toHaveBeenCalledWith(
+				expect.any(String),
+				"refine",
+				{ query: "jacket Men" },
+			);
+			// No new EventSource created
+			expect(mockEventSources).toHaveLength(1);
+		});
+
+		it("resets data model on refine", () => {
+			mockPostA2UIEvent.mockResolvedValue(undefined);
+			const { result } = renderHook(() => useRecommendations());
+
+			// First search
+			act(() => {
+				result.current.search("jacket");
+			});
+
+			// Simulate products arriving
+			act(() => {
+				mockEventSources[0].onopen?.();
+			});
+			act(() => {
+				mockEventSources[0].onmessage?.({
+					data: JSON.stringify({
+						type: "dataModelUpdate",
+						surfaceId: "main",
+						path: "/products",
+						value: [
+							{
+								id: 1,
+								title: "Jacket",
+								description: "",
+								imageUrl: "",
+								price: 100,
+								highlights: [],
+								reasonWhy: [],
+							},
+						],
+					}),
+				});
+			});
+			expect(result.current.products).toHaveLength(1);
+
+			// Refine resets data model
+			act(() => {
+				result.current.refine("jacket Men");
+			});
+
+			expect(result.current.products).toHaveLength(0);
+			expect(result.current.suggestions).toHaveLength(0);
+		});
+
+		it("updates lastQueryRef so reconnect uses refined query", () => {
+			mockPostA2UIEvent.mockResolvedValue(undefined);
+			const { result } = renderHook(() => useRecommendations());
+
+			act(() => {
+				result.current.search("jacket");
+			});
+
+			act(() => {
+				result.current.refine("jacket Men");
+			});
+
+			// Reconnect should use the refined query
+			act(() => {
+				result.current.reconnect();
+			});
+
+			expect(mockEventSources).toHaveLength(2);
+			expect(mockEventSources[1].url).toContain("query=jacket");
+			expect(mockEventSources[1].url).toContain("Men");
+		});
+	});
 });

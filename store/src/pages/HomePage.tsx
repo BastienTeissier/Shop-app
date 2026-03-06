@@ -19,8 +19,16 @@ const PROMPT_BUTTONS = [
 export function HomePage() {
 	const navigate = useNavigate();
 	const { addItem } = useCart();
-	const { products, status, suggestions, connected, error, search, reconnect } =
-		useRecommendations();
+	const {
+		products,
+		status,
+		suggestions,
+		connected,
+		error,
+		search,
+		refine,
+		reconnect,
+	} = useRecommendations();
 	const { chips, isVisible } = useSuggestions(suggestions);
 
 	const [query, setQuery] = useState("");
@@ -32,6 +40,13 @@ export function HomePage() {
 		setQuery(trimmed);
 		setHasSearched(true);
 		search(trimmed);
+	}
+
+	function handleChipClick(chipLabel: string) {
+		const combined = `${query} ${chipLabel}`.trim();
+		setQuery(combined);
+		setHasSearched(true);
+		refine(combined);
 	}
 
 	function handleSubmit(e: FormEvent) {
@@ -87,7 +102,7 @@ export function HomePage() {
 							key={chip.label}
 							type="button"
 							className="suggestion-chip"
-							onClick={() => handleSearch(`${query} ${chip.label}`)}
+							onClick={() => handleChipClick(chip.label)}
 						>
 							{chip.label}
 						</button>

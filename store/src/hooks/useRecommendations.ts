@@ -19,6 +19,7 @@ export type UseRecommendationsReturn = {
 	connected: boolean;
 	error: string | null;
 	search: (query: string) => void;
+	refine: (query: string) => void;
 	reconnect: () => void;
 };
 
@@ -96,6 +97,14 @@ export function useRecommendations(): UseRecommendationsReturn {
 		[connect],
 	);
 
+	const refine = useCallback((query: string) => {
+		lastQueryRef.current = query;
+		setDataModel(createInitialDataModel());
+		postA2UIEvent(sessionIdRef.current, "refine", { query }).catch(() => {
+			setError("Failed to send refinement");
+		});
+	}, []);
+
 	const reconnect = useCallback(() => {
 		// Generate new session ID since old session may be deleted
 		sessionIdRef.current = crypto.randomUUID();
@@ -120,6 +129,7 @@ export function useRecommendations(): UseRecommendationsReturn {
 		connected,
 		error,
 		search,
+		refine,
 		reconnect,
 	};
 }

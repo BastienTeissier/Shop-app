@@ -196,6 +196,10 @@ export async function handleRefine(
 		message: `Refining recommendations: "${refinementQuery}"...`,
 	});
 
+	// Update query in data model
+	broadcastDataModelUpdate(sessionId, "/query", refinementQuery);
+	broadcastDataModelUpdate(sessionId, "/ui/query", refinementQuery);
+
 	try {
 		// Run the search pipeline with refinement context
 		const result = await runSearchPipeline(refinementQuery, {

@@ -13,8 +13,8 @@ export {
 	runRecommendationAgent,
 } from "./recommendation-agent.js";
 export {
-	type ProductSummary,
 	buildProductSummary,
+	type ProductSummary,
 	runRefinementAgent,
 } from "./refinement-agent.js";
 export type { FormattedQuery, Suggestions } from "./schemas/index.js";

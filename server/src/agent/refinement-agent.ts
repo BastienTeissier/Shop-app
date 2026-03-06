@@ -1,9 +1,9 @@
 import { generateObject } from "ai";
 
-import type { RecommendationResult } from "./recommendation-agent.js";
 import { getRecommendationModel } from "./openrouter-provider.js";
-import { type Suggestions, SuggestionsSchema } from "./schemas/index.js";
+import type { RecommendationResult } from "./recommendation-agent.js";
 import type { FormattedQuery } from "./schemas/index.js";
+import { type Suggestions, SuggestionsSchema } from "./schemas/index.js";
 
 const SYSTEM_PROMPT = `You are a suggestion chip generator for a sports equipment store.
 
@@ -42,7 +42,9 @@ export function buildProductSummary(
 	return {
 		titles: products.map((p) => p.title),
 		prices: products.map((p) => p.price / 100),
-		tiers: [...new Set(products.map((p) => p.tier).filter(Boolean))] as string[],
+		tiers: [
+			...new Set(products.map((p) => p.tier).filter(Boolean)),
+		] as string[],
 		subCategories: [
 			...new Set(products.map((p) => p.subCategory).filter(Boolean)),
 		] as string[],

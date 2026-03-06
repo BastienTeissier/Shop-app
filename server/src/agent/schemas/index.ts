@@ -3,7 +3,7 @@ export {
 	FormattedQuerySchema,
 } from "./formatted-query.js";
 export {
-	type Suggestions,
 	SuggestionChipSchema,
+	type Suggestions,
 	SuggestionsSchema,
 } from "./suggestions.js";

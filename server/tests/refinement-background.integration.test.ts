@@ -1,6 +1,5 @@
 import type { Request, Response } from "express";
 import {
-	afterAll,
 	afterEach,
 	beforeAll,
 	beforeEach,
@@ -154,8 +153,12 @@ describe("Background Refinement Integration", () => {
 			expect(suggestionsUpdate).toBeDefined();
 
 			// Suggestions should come after products
-			const productsIndex = newMessages.indexOf(productsUpdate!);
-			const suggestionsIndex = newMessages.indexOf(suggestionsUpdate!);
+			const productsIndex = newMessages.indexOf(
+				productsUpdate as DataModelUpdateMessage,
+			);
+			const suggestionsIndex = newMessages.indexOf(
+				suggestionsUpdate as DataModelUpdateMessage,
+			);
 			expect(suggestionsIndex).toBeGreaterThan(productsIndex);
 
 			sseCtx.triggerClose();
@@ -299,11 +302,9 @@ describe("Background Refinement Integration", () => {
 
 			// First search: refinement stays pending until abort
 			mockRunSearchPipeline.mockResolvedValueOnce(makeSearchResult());
-			let rejectFirstRefinement: (error: Error) => void;
 			mockRunRefinementAgent.mockImplementationOnce(
 				(_fq: unknown, _ps: unknown, opts: { abortSignal?: AbortSignal }) => {
 					return new Promise((_resolve, reject) => {
-						rejectFirstRefinement = reject;
 						if (opts?.abortSignal) {
 							opts.abortSignal.addEventListener("abort", () => {
 								const err = new Error("Aborted");

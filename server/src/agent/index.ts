@@ -12,4 +12,9 @@ export {
 	type RefinementContext,
 	runRecommendationAgent,
 } from "./recommendation-agent.js";
-export type { FormattedQuery } from "./schemas/index.js";
+export {
+	type ProductSummary,
+	buildProductSummary,
+	runRefinementAgent,
+} from "./refinement-agent.js";
+export type { FormattedQuery, Suggestions } from "./schemas/index.js";

@@ -1,5 +1,10 @@
-import { runSearchPipeline } from "../../agent/index.js";
+import {
+	buildProductSummary,
+	runRefinementAgent,
+	runSearchPipeline,
+} from "../../agent/index.js";
 import type { RecommendationResult } from "../../agent/recommendation-agent.js";
+import type { FormattedQuery } from "../../agent/schemas/index.js";
 import {
 	abortPreviousPipeline,
 	broadcastDataModelUpdate,
@@ -47,6 +52,37 @@ export function applyDiversityFilter(
 }
 
 /**
+ * Fire refinement agent in the background (non-blocking).
+ * Produces suggestion chips via SSE. Degrades gracefully on failure.
+ */
+function runRefinementInBackground(
+	sessionId: string,
+	formattedQuery: FormattedQuery | undefined,
+	products: RecommendationResult["products"],
+	abortSignal: AbortSignal,
+): void {
+	if (!formattedQuery || products.length === 0) return;
+
+	const startMs = Date.now();
+	const productSummary = buildProductSummary(products);
+
+	runRefinementAgent(formattedQuery, productSummary, { abortSignal })
+		.then((suggestions) => {
+			broadcastDataModelUpdate(sessionId, "/suggestions", suggestions);
+			console.info({
+				pipeline: "refinement",
+				chipsCount: suggestions.chips.length,
+				chipLabels: suggestions.chips.map((c) => c.label),
+				refinementMs: Date.now() - startMs,
+			});
+		})
+		.catch((error) => {
+			if (error instanceof Error && error.name === "AbortError") return;
+			console.warn("Refinement agent failed:", error);
+		});
+}
+
+/**
  * Handle recommendation action - uses LLM agent to find and rank products.
  */
 export async function handleRecommend(
@@ -55,6 +91,13 @@ export async function handleRecommend(
 ): Promise<void> {
 	// Abort any in-flight pipeline and get a fresh signal
 	const abortSignal = abortPreviousPipeline(sessionId);
+
+	// Clear stale suggestions immediately
+	broadcastDataModelUpdate(sessionId, "/suggestions", { chips: [] });
+
+	// Clear stale refinement state so a concurrent refine doesn't use old data
+	setLastRecommendation(sessionId, undefined);
+	setLastFormattedQuery(sessionId, undefined);
 
 	// Update status to searching
 	broadcastDataModelUpdate(sessionId, "/status", {
@@ -103,6 +146,14 @@ export async function handleRecommend(
 					? result.summary
 					: "No recommendations found",
 		});
+
+		// Fire refinement async (non-blocking)
+		runRefinementInBackground(
+			sessionId,
+			result.formattedQuery,
+			filteredProducts,
+			abortSignal,
+		);
 	} catch (error) {
 		// Silently ignore abort errors — a new pipeline is already running
 		if (error instanceof Error && error.name === "AbortError") {
@@ -135,6 +186,9 @@ export async function handleRefine(
 
 	// Abort any in-flight pipeline and get a fresh signal
 	const abortSignal = abortPreviousPipeline(sessionId);
+
+	// Clear stale suggestions immediately
+	broadcastDataModelUpdate(sessionId, "/suggestions", { chips: [] });
 
 	// Update status to searching
 	broadcastDataModelUpdate(sessionId, "/status", {
@@ -185,6 +239,14 @@ export async function handleRefine(
 					? result.summary
 					: "No matching products after refinement",
 		});
+
+		// Fire refinement async (non-blocking)
+		runRefinementInBackground(
+			sessionId,
+			result.formattedQuery,
+			filteredProducts,
+			abortSignal,
+		);
 	} catch (error) {
 		// Silently ignore abort errors — a new pipeline is already running
 		if (error instanceof Error && error.name === "AbortError") {

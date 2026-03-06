@@ -344,9 +344,8 @@ describe("HomePage", () => {
 				(btn) =>
 					btn.classList.contains("suggestion-chip") &&
 					btn.textContent === "Waterproof",
-			);
-			expect(waterproofChip).toBeDefined();
-			await user.click(waterproofChip!);
+			) as HTMLElement;
+			await user.click(waterproofChip);
 			expect(mockRefine).toHaveBeenCalledWith("jacket Men Waterproof");
 		});
 	});

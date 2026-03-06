@@ -268,9 +268,9 @@ describe("Refinement Apply Integration", () => {
 			);
 
 			expect(suggestionsUpdate).toBeDefined();
-			expect(
-				(suggestionsUpdate as DataModelUpdateMessage).value,
-			).toMatchObject(newChips);
+			expect((suggestionsUpdate as DataModelUpdateMessage).value).toMatchObject(
+				newChips,
+			);
 
 			sseCtx.triggerClose();
 		});
@@ -312,9 +312,9 @@ describe("Refinement Apply Integration", () => {
 			) as DataModelUpdateMessage | undefined;
 
 			expect(errorStatus).toBeDefined();
-			expect(
-				(errorStatus?.value as { message: string }).message,
-			).toContain("No previous recommendation");
+			expect((errorStatus?.value as { message: string }).message).toContain(
+				"No previous recommendation",
+			);
 
 			sseCtx.triggerClose();
 		});

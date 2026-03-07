@@ -163,6 +163,30 @@ export type RefineAction = UserAction & {
 };
 
 // =============================================================================
+// Suggestion Chip Types
+// =============================================================================
+
+export const SUGGESTION_CHIP_KINDS = [
+	"gender",
+	"priceRange",
+	"size",
+	"material",
+	"activity",
+	"brand",
+	"color",
+	"season",
+	"feature",
+	"other",
+] as const;
+
+export type SuggestionChipKind = (typeof SUGGESTION_CHIP_KINDS)[number];
+
+export type SuggestionChip = {
+	label: string;
+	kind: SuggestionChipKind;
+};
+
+// =============================================================================
 // Recommendation Data Model Types
 // =============================================================================
 
@@ -207,11 +231,6 @@ export type RecommendationCart = {
 	totalPrice: number;
 };
 
-export type LastRecommendation = {
-	query: string;
-	products: RecommendationProduct[];
-};
-
 export type RecommendationDataModel = {
 	query: string;
 	constraints: RecommendationConstraints;
@@ -219,7 +238,7 @@ export type RecommendationDataModel = {
 	status: RecommendationStatus;
 	ui: RecommendationUIState;
 	cart: RecommendationCart;
-	lastRecommendation?: LastRecommendation;
+	suggestions: { chips: SuggestionChip[] };
 };
 
 // =============================================================================
@@ -234,6 +253,7 @@ export function createInitialDataModel(): RecommendationDataModel {
 		status: { phase: "idle", message: "Ready to search" },
 		ui: { query: "" },
 		cart: { items: [], totalQuantity: 0, totalPrice: 0 },
+		suggestions: { chips: [] },
 	};
 }
 

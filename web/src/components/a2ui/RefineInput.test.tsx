@@ -22,6 +22,7 @@ function makeDataModel(): RecommendationDataModel {
 		status: { phase: "idle", message: "Ready" },
 		ui: { query: "" },
 		cart: { items: [], totalQuantity: 0, totalPrice: 0 },
+		suggestions: { chips: [] },
 	};
 }
 

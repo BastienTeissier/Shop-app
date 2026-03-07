@@ -10,6 +10,7 @@ import { HomePage } from "./HomePage.js";
 // ---------------------------------------------------------------------------
 
 const mockSearch = vi.fn();
+const mockRefine = vi.fn();
 const mockReconnect = vi.fn();
 const mockAddItem = vi.fn();
 
@@ -37,9 +38,11 @@ function mockRecommendationsState(overrides: Record<string, unknown> = {}) {
 	mockUseRecommendations.mockReturnValue({
 		products: [],
 		status: { phase: "idle", message: "Ready to search" },
+		suggestions: [],
 		connected: true,
 		error: null,
 		search: mockSearch,
+		refine: mockRefine,
 		reconnect: mockReconnect,
 		...overrides,
 	});
@@ -99,6 +102,7 @@ const SAMPLE_PRODUCTS = [
 describe("HomePage", () => {
 	beforeEach(() => {
 		mockSearch.mockReset();
+		mockRefine.mockReset();
 		mockReconnect.mockReset();
 		mockAddItem.mockReset();
 		mockNavigate.mockReset();
@@ -250,5 +254,99 @@ describe("HomePage", () => {
 		await user.click(addButtons[0]);
 
 		expect(mockAddItem).toHaveBeenCalledWith(1);
+	});
+
+	describe("chip refinement", () => {
+		const SUGGESTION_CHIPS = [
+			{ label: "Men", kind: "gender" },
+			{ label: "Waterproof", kind: "feature" },
+		];
+
+		it("chip click calls refine, not search", async () => {
+			const user = userEvent.setup();
+			mockRecommendationsState({
+				products: SAMPLE_PRODUCTS,
+				suggestions: SUGGESTION_CHIPS,
+				status: { phase: "completed", message: "Done" },
+			});
+			renderHomePage();
+
+			// Trigger initial search to set hasSearched and query
+			const input = screen.getByPlaceholderText("Search for products...");
+			await user.type(input, "jacket");
+			await user.click(screen.getByText("Search"));
+			mockSearch.mockReset();
+
+			// Click chip
+			await user.click(screen.getByText("Men"));
+
+			expect(mockRefine).toHaveBeenCalledWith("jacket Men");
+			expect(mockSearch).not.toHaveBeenCalled();
+		});
+
+		it("chip click updates search bar text", async () => {
+			const user = userEvent.setup();
+			mockRecommendationsState({
+				products: SAMPLE_PRODUCTS,
+				suggestions: SUGGESTION_CHIPS,
+				status: { phase: "completed", message: "Done" },
+			});
+			renderHomePage();
+
+			const input = screen.getByPlaceholderText("Search for products...");
+			await user.type(input, "jacket");
+			await user.click(screen.getByText("Search"));
+
+			await user.click(screen.getByText("Men"));
+
+			expect(input).toHaveValue("jacket Men");
+		});
+
+		it("manual submit still calls search, not refine", async () => {
+			const user = userEvent.setup();
+			mockRecommendationsState({
+				products: SAMPLE_PRODUCTS,
+				suggestions: SUGGESTION_CHIPS,
+				status: { phase: "completed", message: "Done" },
+			});
+			renderHomePage();
+
+			const input = screen.getByPlaceholderText("Search for products...");
+			await user.clear(input);
+			await user.type(input, "running shoes");
+			await user.click(screen.getByText("Search"));
+
+			expect(mockSearch).toHaveBeenCalledWith("running shoes");
+			expect(mockRefine).not.toHaveBeenCalled();
+		});
+
+		it("progressive refinement accumulates query", async () => {
+			const user = userEvent.setup();
+			mockRecommendationsState({
+				products: SAMPLE_PRODUCTS,
+				suggestions: SUGGESTION_CHIPS,
+				status: { phase: "completed", message: "Done" },
+			});
+			renderHomePage();
+
+			// Initial search
+			const input = screen.getByPlaceholderText("Search for products...");
+			await user.type(input, "jacket");
+			await user.click(screen.getByText("Search"));
+
+			// First chip click
+			await user.click(screen.getByText("Men"));
+			expect(mockRefine).toHaveBeenCalledWith("jacket Men");
+
+			// Second chip click — use role to disambiguate from product highlight
+			const chipButtons = screen.getAllByRole("button");
+			const waterproofChip = chipButtons.find(
+				(btn) =>
+					btn.classList.contains("suggestion-chip") &&
+					btn.textContent === "Waterproof",
+			) as HTMLElement;
+			await user.click(waterproofChip);
+			expect(mockRefine).toHaveBeenCalledWith("jacket Men Waterproof");
+		});
 	});
 });

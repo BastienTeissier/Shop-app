@@ -19,10 +19,17 @@ import {
 	isDataModelUpdate,
 } from "./helpers/a2ui-mocks.js";
 
-// Mock the recommendation agent before any imports
-const mockRunRecommendationAgent = vi.fn();
+// Mock the search pipeline before any imports
+const mockRunSearchPipeline = vi.fn();
 vi.mock("../src/agent/index.js", () => ({
-	runRecommendationAgent: mockRunRecommendationAgent,
+	runSearchPipeline: mockRunSearchPipeline,
+	runRefinementAgent: vi.fn().mockResolvedValue({ chips: [] }),
+	buildProductSummary: vi.fn(() => ({
+		titles: [],
+		prices: [],
+		tiers: [],
+		subCategories: [],
+	})),
 }));
 
 describe("A2UI Event Integration", () => {
@@ -75,7 +82,7 @@ describe("A2UI Event Integration", () => {
 
 	beforeEach(() => {
 		// Reset mock before each test
-		mockRunRecommendationAgent.mockReset();
+		mockRunSearchPipeline.mockReset();
 	});
 
 	afterEach(() => {
@@ -94,7 +101,7 @@ describe("A2UI Event Integration", () => {
 			const sessionId = crypto.randomUUID();
 
 			// Mock agent to return products
-			mockRunRecommendationAgent.mockResolvedValue({
+			mockRunSearchPipeline.mockResolvedValue({
 				products: [
 					{
 						id: testProductId,
@@ -116,6 +123,7 @@ describe("A2UI Event Integration", () => {
 					},
 				],
 				summary: "Found 2 products for running",
+				timings: { formatterMs: 10, recommenderMs: 20 },
 			});
 
 			// Connect SSE client
@@ -144,8 +152,11 @@ describe("A2UI Event Integration", () => {
 			// Verify success response
 			expect(eventCtx.responseBody()).toEqual({ success: true });
 
-			// Verify agent was called
-			expect(mockRunRecommendationAgent).toHaveBeenCalledWith("running");
+			// Verify pipeline was called
+			expect(mockRunSearchPipeline).toHaveBeenCalledWith(
+				"running",
+				expect.objectContaining({ abortSignal: expect.any(AbortSignal) }),
+			);
 
 			// Verify SSE client received updates
 			const newMessages = sseCtx.messages.slice(initialMessageCount);
@@ -291,10 +302,11 @@ describe("A2UI Event Integration", () => {
 		it("POST search with empty query returns empty products array", async () => {
 			const sessionId = crypto.randomUUID();
 
-			// Mock agent to return empty products for empty query
-			mockRunRecommendationAgent.mockResolvedValue({
+			// Mock pipeline to return empty products for empty query
+			mockRunSearchPipeline.mockResolvedValue({
 				products: [],
 				summary: "No recommendations found.",
+				timings: { formatterMs: 10, recommenderMs: 20 },
 			});
 
 			// Connect SSE client

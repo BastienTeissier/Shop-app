@@ -5,6 +5,7 @@ import type {
 	RecommendationDataModel,
 	RecommendationProduct,
 	RecommendationStatus,
+	SuggestionChip,
 } from "@shared/a2ui-types.js";
 import { createInitialDataModel } from "@shared/a2ui-types.js";
 import { applyDataModelUpdate } from "@shared/a2ui-utils.js";
@@ -14,9 +15,11 @@ import { getA2UIStreamUrl, postA2UIEvent } from "../api.js";
 export type UseRecommendationsReturn = {
 	products: RecommendationProduct[];
 	status: RecommendationStatus;
+	suggestions: SuggestionChip[];
 	connected: boolean;
 	error: string | null;
 	search: (query: string) => void;
+	refine: (query: string) => void;
 	reconnect: () => void;
 };
 
@@ -94,6 +97,14 @@ export function useRecommendations(): UseRecommendationsReturn {
 		[connect],
 	);
 
+	const refine = useCallback((query: string) => {
+		lastQueryRef.current = query;
+		setDataModel(createInitialDataModel());
+		postA2UIEvent(sessionIdRef.current, "refine", { query }).catch(() => {
+			setError("Failed to send refinement");
+		});
+	}, []);
+
 	const reconnect = useCallback(() => {
 		// Generate new session ID since old session may be deleted
 		sessionIdRef.current = crypto.randomUUID();
@@ -114,9 +125,11 @@ export function useRecommendations(): UseRecommendationsReturn {
 	return {
 		products: dataModel.products,
 		status: dataModel.status,
+		suggestions: dataModel.suggestions?.chips ?? [],
 		connected,
 		error,
 		search,
+		refine,
 		reconnect,
 	};
 }

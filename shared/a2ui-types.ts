@@ -166,17 +166,20 @@ export type RefineAction = UserAction & {
 // Suggestion Chip Types
 // =============================================================================
 
-export type SuggestionChipKind =
-	| "gender"
-	| "priceRange"
-	| "size"
-	| "material"
-	| "activity"
-	| "brand"
-	| "color"
-	| "season"
-	| "feature"
-	| "other";
+export const SUGGESTION_CHIP_KINDS = [
+	"gender",
+	"priceRange",
+	"size",
+	"material",
+	"activity",
+	"brand",
+	"color",
+	"season",
+	"feature",
+	"other",
+] as const;
+
+export type SuggestionChipKind = (typeof SUGGESTION_CHIP_KINDS)[number];
 
 export type SuggestionChip = {
 	label: string;

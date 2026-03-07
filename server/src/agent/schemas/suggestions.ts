@@ -1,21 +1,10 @@
 import { z } from "zod";
 
+import { SUGGESTION_CHIP_KINDS } from "@shared/a2ui-types.js";
+
 export const SuggestionChipSchema = z.object({
 	label: z.string().describe("Display text for the chip"),
-	kind: z
-		.enum([
-			"gender",
-			"priceRange",
-			"size",
-			"material",
-			"activity",
-			"brand",
-			"color",
-			"season",
-			"feature",
-			"other",
-		])
-		.describe("Chip category"),
+	kind: z.enum(SUGGESTION_CHIP_KINDS).describe("Chip category"),
 });
 
 export const SuggestionsSchema = z.object({

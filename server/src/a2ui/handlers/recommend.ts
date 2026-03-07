@@ -82,38 +82,40 @@ function runRefinementInBackground(
 		});
 }
 
+type SearchMessages = {
+	searching: string;
+	noResults: string;
+	error: string;
+	errorLog: string;
+};
+
 /**
- * Handle recommendation action - uses LLM agent to find and rank products.
+ * Shared pipeline: abort → clear suggestions → status → search → filter → broadcast → store → refinement.
  */
-export async function handleRecommend(
+async function runSearchAndBroadcast(
 	sessionId: string,
 	query: string,
+	messages: SearchMessages,
+	pipelineOptions: Parameters<typeof runSearchPipeline>[1] = {},
 ): Promise<void> {
-	// Abort any in-flight pipeline and get a fresh signal
 	const abortSignal = abortPreviousPipeline(sessionId);
 
-	// Clear stale suggestions immediately
 	broadcastDataModelUpdate(sessionId, "/suggestions", { chips: [] });
 
-	// Clear stale refinement state so a concurrent refine doesn't use old data
-	setLastRecommendation(sessionId, undefined);
-	setLastFormattedQuery(sessionId, undefined);
-
-	// Update status to searching
 	broadcastDataModelUpdate(sessionId, "/status", {
 		phase: "searching",
-		message: `Finding recommendations for "${query}"...`,
+		message: messages.searching,
 	});
 
-	// Update query in data model
 	broadcastDataModelUpdate(sessionId, "/query", query);
 	broadcastDataModelUpdate(sessionId, "/ui/query", query);
 
 	try {
-		// Run the search pipeline (formatter → recommender)
-		const result = await runSearchPipeline(query, { abortSignal });
+		const result = await runSearchPipeline(query, {
+			...pipelineOptions,
+			abortSignal,
+		});
 
-		// Apply diversity filter
 		console.info(
 			`Diversity filter: ${result.products.length} products before filtering`,
 		);
@@ -122,10 +124,8 @@ export async function handleRecommend(
 			`Diversity filter: ${result.products.length} → ${filteredProducts.length} products`,
 		);
 
-		// Broadcast filtered products with highlights and reasonWhy
 		broadcastDataModelUpdate(sessionId, "/products", filteredProducts);
 
-		// Store last recommendation for refinement (raw user query, not formatted)
 		if (filteredProducts.length > 0) {
 			setLastRecommendation(sessionId, {
 				query,
@@ -133,21 +133,18 @@ export async function handleRecommend(
 			});
 		}
 
-		// Store formatted query in runtime state for UF2/UF3
 		if (result.formattedQuery) {
 			setLastFormattedQuery(sessionId, result.formattedQuery);
 		}
 
-		// Update status to completed
 		broadcastDataModelUpdate(sessionId, "/status", {
 			phase: "completed",
 			message:
 				filteredProducts.length > 0
 					? result.summary
-					: "No recommendations found",
+					: messages.noResults,
 		});
 
-		// Fire refinement async (non-blocking)
 		runRefinementInBackground(
 			sessionId,
 			result.formattedQuery,
@@ -155,16 +152,34 @@ export async function handleRecommend(
 			abortSignal,
 		);
 	} catch (error) {
-		// Silently ignore abort errors — a new pipeline is already running
 		if (error instanceof Error && error.name === "AbortError") {
 			return;
 		}
-		console.error("Recommendation agent error:", error);
+		console.error(messages.errorLog, error);
 		broadcastDataModelUpdate(sessionId, "/status", {
 			phase: "error",
-			message: "Failed to get recommendations. Please try again.",
+			message: messages.error,
 		});
 	}
+}
+
+/**
+ * Handle recommendation action - uses LLM agent to find and rank products.
+ */
+export async function handleRecommend(
+	sessionId: string,
+	query: string,
+): Promise<void> {
+	// Clear stale refinement state so a concurrent refine doesn't use old data
+	setLastRecommendation(sessionId, undefined);
+	setLastFormattedQuery(sessionId, undefined);
+
+	return runSearchAndBroadcast(sessionId, query, {
+		searching: `Finding recommendations for "${query}"...`,
+		noResults: "No recommendations found",
+		error: "Failed to get recommendations. Please try again.",
+		errorLog: "Recommendation agent error:",
+	});
 }
 
 /**
@@ -174,7 +189,6 @@ export async function handleRefine(
 	sessionId: string,
 	refinementQuery: string,
 ): Promise<void> {
-	// Check if there's a previous recommendation to refine
 	const lastRecommendation = getLastRecommendation(sessionId);
 	if (!lastRecommendation) {
 		broadcastDataModelUpdate(sessionId, "/status", {
@@ -184,82 +198,15 @@ export async function handleRefine(
 		return;
 	}
 
-	// Abort any in-flight pipeline and get a fresh signal
-	const abortSignal = abortPreviousPipeline(sessionId);
-
-	// Clear stale suggestions immediately
-	broadcastDataModelUpdate(sessionId, "/suggestions", { chips: [] });
-
-	// Update status to searching
-	broadcastDataModelUpdate(sessionId, "/status", {
-		phase: "searching",
-		message: `Refining recommendations: "${refinementQuery}"...`,
+	return runSearchAndBroadcast(sessionId, refinementQuery, {
+		searching: `Refining recommendations: "${refinementQuery}"...`,
+		noResults: "No matching products after refinement",
+		error: "Failed to refine recommendations. Please try again.",
+		errorLog: "Refinement agent error:",
+	}, {
+		refinementContext: {
+			previousQuery: lastRecommendation.query,
+			previousProducts: lastRecommendation.products,
+		},
 	});
-
-	// Update query in data model
-	broadcastDataModelUpdate(sessionId, "/query", refinementQuery);
-	broadcastDataModelUpdate(sessionId, "/ui/query", refinementQuery);
-
-	try {
-		// Run the search pipeline with refinement context
-		const result = await runSearchPipeline(refinementQuery, {
-			refinementContext: {
-				previousQuery: lastRecommendation.query,
-				previousProducts: lastRecommendation.products,
-			},
-			abortSignal,
-		});
-
-		// Apply diversity filter
-		console.info(
-			`Diversity filter: ${result.products.length} products before filtering`,
-		);
-		const filteredProducts = applyDiversityFilter(result.products);
-		console.info(
-			`Diversity filter: ${result.products.length} → ${filteredProducts.length} products`,
-		);
-
-		// Broadcast refined products
-		broadcastDataModelUpdate(sessionId, "/products", filteredProducts);
-
-		// Update last recommendation with refined results
-		if (filteredProducts.length > 0) {
-			setLastRecommendation(sessionId, {
-				query: refinementQuery,
-				products: filteredProducts,
-			});
-		}
-
-		// Store formatted query in runtime state for UF2/UF3
-		if (result.formattedQuery) {
-			setLastFormattedQuery(sessionId, result.formattedQuery);
-		}
-
-		// Update status to completed
-		broadcastDataModelUpdate(sessionId, "/status", {
-			phase: "completed",
-			message:
-				filteredProducts.length > 0
-					? result.summary
-					: "No matching products after refinement",
-		});
-
-		// Fire refinement async (non-blocking)
-		runRefinementInBackground(
-			sessionId,
-			result.formattedQuery,
-			filteredProducts,
-			abortSignal,
-		);
-	} catch (error) {
-		// Silently ignore abort errors — a new pipeline is already running
-		if (error instanceof Error && error.name === "AbortError") {
-			return;
-		}
-		console.error("Refinement agent error:", error);
-		broadcastDataModelUpdate(sessionId, "/status", {
-			phase: "error",
-			message: "Failed to refine recommendations. Please try again.",
-		});
-	}
 }

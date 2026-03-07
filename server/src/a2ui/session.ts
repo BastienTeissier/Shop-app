@@ -7,8 +7,8 @@ import type {
 	RecommendationProduct,
 } from "@shared/a2ui-types.js";
 
-import { createInitialDataModel } from "../../../shared/a2ui-types.js";
-import { parseSafePath } from "../../../shared/a2ui-utils.js";
+import { createInitialDataModel } from "@shared/a2ui-types.js";
+import { parseSafePath } from "@shared/a2ui-utils.js";
 import type { FormattedQuery } from "../agent/schemas/index.js";
 
 export { createInitialDataModel };
